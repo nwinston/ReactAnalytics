@@ -56,7 +56,7 @@ class MessageManager(object):
         self.reacts_on_messages.remove_react(msg_id, react_name)
         self.user_reacts.remove_react(user_id, react_name)
         if react_name not in self.react_counts:
-            raise Exception('React not in react_counts')
+            print('React not in react_counts')
         else:
             if self.react_counts[react_name] <= 1:
                 self.react_counts[react_name] = 0
@@ -148,6 +148,11 @@ class MessageReacts(object):
 
     def keys(self):
         return self.reacts.keys()
+
+    def has_react(self, msg_id, react_name):
+        if msg_id not in self.reacts:
+            return False
+        return react_name in self.reacts[msg_id]
 
 
 class UserReacts(object):

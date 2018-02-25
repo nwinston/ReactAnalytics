@@ -1,4 +1,5 @@
 from functools import reduce
+from collections import defaultdict
 import operator
 import re
 
@@ -24,6 +25,46 @@ def favorite_reacts_of_user(message_manager, user, count=5):
 	user_reacts = message_manager.get_user_reacts(user)
 	return _most_used_reacts(user_reacts, count)
 
+def get_top_by_value(data, count=5):
+	sorted_data = sorted(data.items(), key=operator.itemgetter(1))
+	spliced = sorted_data[:count]
+	return spliced[::-1]
+
+# Given a list of message ids, get all the unique words
+# in those messages. Parses escaped channels/users
+# (i.e. UserID -> display_name)
+def get_unique_words(message_manager, msgs, users, channels):
+	channel_re = re.compile('(?<=<#)(.*?)(?=>)')
+	user_re = re.compile('(?<=<@)(.*?)(?=>)')
+
+	words = defaultdict(lambda: 1)
+
+	for msg_id in msgs:
+		msg_text = message_manager.get_message_text(msg_id)
+		split_msg = set([w for w in msg_text.split(' ') if w not in words_to_ignore])
+		for word in split_msg:
+			# tmp variable in case word is escaped (i.e linked name/channel)
+			key = word
+
+			ch_find = channel_re.search(word)
+			if ch_find:
+				ch_id = ch_find.group(0)
+				if ch_id in channels:
+					key = channels[ch_id]
+			user_find = user_re.search(word)
+			if user_find:
+				user_id = user_find.group(0)
+				if user_id in users:
+					key = users[user_id]['display_name']
+			words[key] += 1
+	return dict(words)
+
+def react_buzzword(message_manager, react_name, users, channels):
+	msgs = [m for m in message_manager.reacts_on_messages if message_manager.reacts_on_messages.has_react(m, react_name)]
+	words = get_unique_words(message_manager, msgs, users, channels)
+	ret = get_top_by_value(words)
+	return ret
+
 def reacts_to_words(message_manager, users, channels, count=5):
 
 	word_count = {}
@@ -37,6 +78,8 @@ def reacts_to_words(message_manager, users, channels, count=5):
 		msg_text = message_manager.get_message_text(msg_id)
 		split_msg = set(msg_text.split(' '))
 		reacts_on_msg = message_manager.get_reacts_on_message(msg_id)
+		if not reacts_on_msg:
+			continue
 		for w in split_msg:
 			key = w
 
@@ -52,7 +95,7 @@ def reacts_to_words(message_manager, users, channels, count=5):
 			if user_find:
 				user_id = user_find.group(0)
 				if user_id in users:
-					key = users[user_id]
+					key = users[user_id]['display_name']
 
 			if key in word_count:
 				word_count[key] += 1
@@ -67,9 +110,6 @@ def reacts_to_words(message_manager, users, channels, count=5):
 					word_to_reacts[key][react] += 1
 				else:
 					word_to_reacts[key][react] = 1
-
-	
-
 
 	return word_to_reacts
 

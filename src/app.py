@@ -8,6 +8,7 @@ app = Flask(__name__)
 pyBot = bot.Bot()
 
 
+
 @app.route("/install", methods=['GET'])
 def pre_install():
     client_id = slack.oauth['client_id']
@@ -20,14 +21,11 @@ def thanks():
     print('thanks')
     code_arg = request.args.get('code')
     pyBot.auth(code_arg)
-    pyBot.send_dm('U92R2JTQQ', 'test')
     return render_template('thanks.html')
 
 
 @app.route('/listening', methods=['GET', 'POST'])
 def hears():
-
-
     slack_event = request.get_json()
 
     if 'challenge' in slack_event:
@@ -35,13 +33,12 @@ def hears():
             'content_type': 'application/json'
         })
 
-
     if 'event' in slack_event:
         pyBot.on_event(bot.EventType.API_EVENT, slack_event)
 
     return make_response('Non-reaction event', 200)
 
-
+'''
 @app.route(bot.MOST_USED_REACTS, methods=['GET', 'POST'])
 def most_used_reacts():
     pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
@@ -63,6 +60,19 @@ def most_unique_reacts_on_post():
 def reacts_to_words():
     pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
     return make_response('', 200)
+'''
+@app.route('/react_analytics', methods=['GET', 'POST'])
+def slash_command():
+    slash_command = parse_slash_command(request)
+    text = slash_command['text']
+    response_text = 'use [/react_analytics help] for options'
+    if text.lower() == 'help':
+        return make_response('try this', 200)
+    if text.split(' ')[0] in bot.VALID_COMMANDS:
+        pyBot.on_event(bot.EventType.SLASH_COMMAND, slash_command)
+        response_text = ''
+    return make_response(response_text, 200)
+
 
 
 def parse_slash_command(request):
