@@ -14,3 +14,4 @@ numpy==1.14
 requests==2.11.1
 psycopg2
 gunicorn
+nltk
