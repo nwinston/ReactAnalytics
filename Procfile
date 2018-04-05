@@ -1,2 +1,1 @@
-heroku ps:scale web=1
-web: python app.py
+web gunicorn manage:app
