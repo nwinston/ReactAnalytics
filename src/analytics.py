@@ -3,11 +3,11 @@ from collections import defaultdict
 import operator
 import re
 import db
-from collections import Set
+
 import nltk
 from nltk.collocations import *
 
-stop_words = set(line.strip() for line in open('stopwords.txt'))
+stop_words = set(line.strip() for line in open('..\stopwords.txt'))
 
 def most_used_reacts(count=5):
 	reacts = db.get_react_counts()

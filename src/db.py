@@ -1,4 +1,3 @@
-import sqlite3
 import traceback
 import os
 import psycopg2
