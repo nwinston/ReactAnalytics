@@ -9,9 +9,6 @@ from message import MessageDBAdapter, msg_id_string
 from enum import Enum
 import logging
 from infinitetimer import InfiniteTimer
-from time import sleep
-import nltk
-from nltk.collocations import *
 
 MOST_USED_REACTS = 'most_used_reacts'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
