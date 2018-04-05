@@ -12,3 +12,4 @@ websocket-client==0.37.0
 Werkzeug==0.11.11
 numpy==1.14
 requests==2.11.1
+gunicorn
