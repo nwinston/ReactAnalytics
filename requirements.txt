@@ -11,3 +11,4 @@ slackclient==1.0.2
 websocket-client==0.37.0
 Werkzeug==0.11.11
 numpy==1.14
+nltk

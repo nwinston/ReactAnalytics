@@ -5,9 +5,13 @@ from threading import Thread
 import re
 from slackclient import SlackClient
 import analytics
-from message import MessageManager
+from message import MessageDBAdapter, msg_id_string
 from enum import Enum
 import logging
+from infinitetimer import InfiniteTimer
+from time import sleep
+import nltk
+from nltk.collocations import *
 
 MOST_USED_REACTS = 'most_used_reacts'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
@@ -15,7 +19,9 @@ MOST_UNIQUE_REACTS_ON_POST = 'most_unique_reacts_on_post'
 REACTS_TO_WORDS = 'reacts_to_words'
 REACT_BUZZWORDS = 'react_buzzwords'
 
-VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACTS_TO_WORDS, REACT_BUZZWORDS]
+VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACT_BUZZWORDS]
+
+TIMER_INTERVAL = 2
 
 authed_teams = {}
 class Bot(object):
@@ -30,24 +36,44 @@ class Bot(object):
 					  # Scopes provide and limit permissions to what our app
 					  # can access. It's important to use the most restricted
 					  # scope that your app will need.
-					  "scope": "bot"}
-		self.bot_access_token = os.environ.get('BOT_ACCESS_TOKEN')
+					  "scope": 'bot'}
 		self.verification = os.environ.get("VERIFICATION_TOKEN")
-		self.bot_client = SlackClient(self.bot_access_token)
+		self.bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
 		self.workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
 		self.users = {} # user_id : {'user_name' : user_name, 'display_name' : display_name}
 		self.channels = {} #channel_id : channel_name
-		self.message_manager = MessageManager(self.load_message_history())
+		self.message_db_adapter = MessageDBAdapter()
+
 		self.event_queue = Queue()
+		self.message_posted_queue = Queue()
+		self.react_event_queue = Queue()
 		self.load_users()
+		self.msg_dump_timer = InfiniteTimer(TIMER_INTERVAL, self.post_to_db)
+		self.msg_dump_timer.start()
 		event_thread = Thread(target=self.event_handler_loop)
 		event_thread.start()
+		#t = Thread(self._on_init())
+		#t.start()
+		print('start')
+
+	def _on_init(self):
+		msgs, reacts = self.load_message_history()
+
+		# dont add messages already in db
+		msgs = [msg for msg in msgs if not self.message_db_adapter.msg_in_db(msg[0], msg[1], msg[2])]
+		reacts = [react for react in reacts if not self.message_db_adapter.msg_in_db(react[0], react[1], react[2])]
+		self.message_db_adapter.add_messages(msgs)
+		self.message_db_adapter.add_reacts(reacts)
+
 
 	'''
 	API INTERACTIONS
 	'''
+
+
 	def load_users(self):
-		users_response = self.bot_client.api_call('users.list')
+		users_response = self.workspace_client.api_call('users.list',
+														scope=self.oauth['scope'])
 		if users_response['ok']:
 			users = users_response['members']
 			for user in users:
@@ -70,19 +96,52 @@ class Bot(object):
 			self.channels[channel['id']] = channel['name']
 
 	def load_message_history(self):
+		team_info_response = self.workspace_client.api_call('team.info',
+															scope=self.oauth['scope'])
+		if team_info_response['ok']:
+			team_id = team_info_response['team']['id']
+		else:
+			return []
 		if not self.channels:
 			self.load_channels()
-		messages = {}
+		messages = []
+		reacts = []
 		for channel in self.channels:
-			messages[channel] = self.get_channel_message_history(channel)
-		return messages
+			channel_msgs = self.get_channel_message_history(channel)
+			for msg in channel_msgs:
+				ts = msg['ts']
+				if 'user' not in msg:
+					continue
+				msg_user = msg['user']
+				msg_text = msg['text']
+				if 'reactions' in msg:
+					reacts_on_msg = msg['reactions']
+					for r in reacts_on_msg:
+						name = r['name']
+						reacts.extend((team_id, channel, ts, react_user, name) for react_user in r['users'])
+				messages.append((team_id, channel, ts, msg_user, msg_text))
+		return messages, reacts
 
 	def get_channel_message_history(self, channel_id):
-		response = self.workspace_client.api_call('channels.history', channel=channel_id)
-		if not response['ok']:
-			logging.getLogger(__name__).error(msg='Failed to get channel history for ' + channel_id + ': ' + response['error'])
-		else:
-			return response['messages']
+		messages = []
+		has_more = True
+		latest = 0
+		while has_more:
+			try:
+				response = self.workspace_client.api_call('channels.history',
+													  channel=channel_id,
+													  latest = latest)
+			except:
+				return messages
+			if not response['ok']:
+				logging.getLogger(__name__).error(
+					msg='Failed to get channel history for ' + channel_id + ': ' + response['error'])
+				return []
+			messages.extend(response['messages'])
+			if messages:
+				latest = messages[-1]['ts']
+			has_more = response['has_more']
+		return messages
 
 	# Given a channel ID checks if it's a direct message
 	def is_dm_channel(self, channel_id):
@@ -108,22 +167,21 @@ class Bot(object):
 		return post_msg['ok']
 
 	def auth(self, code):
-		auth_response = self.bot_client.api_call('oauth.access',
-												 client_id=self.oauth['client_id'],
-												 client_secret=self.oauth['client_secret'],
-												 code=code)
-		if 'team_id' in auth_response:
-			team_id = auth_response['team_id']
-			authed_teams[team_id] = {'bot_token':
-									auth_response['bot']['bot_access_token']}
-		else:
-			return False
+		response = self.bot_client.api_call('oauth.access',
+											client_id=self.oauth['client_id'],
+											client_secret=self.oauth['client_secret'],
+											code=code)
+		if response['ok']:
+			team_id = response['team_id']
+			bot_token = response['bot']['bot_access_token']
+			self.message_db_adapter.add_auth_team(team_id, bot_token)
+			self.bot_client = SlackClient(bot_token)
 
-		self.bot_client = SlackClient(authed_teams[team_id]['bot_token'])
-		return True
+
+
 
 	def auth_token(self, token):
-		auth_response = self.bot_client.api_call('auth.test',
+		auth_response = self.workspace_client.api_call('auth.test',
 												 token=token)
 		return auth_response['ok']
 
@@ -137,10 +195,8 @@ class Bot(object):
 	def handle_api_event(self, event):
 		slack_event = event.event_info
 		event_type = slack_event['event']['type']
-		channel_id = slack_event['event']['item']['channel']
 
-		if self.is_dm_channel(channel_id):
-			return
+
 
 		if event_type == 'reaction_added':
 			return self.reaction_added(slack_event)
@@ -157,7 +213,7 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		self.message_manager.add_react(channel_id, time_stamp, user_id, react_name)
+		self.react_event_queue.put((msg_id_string(channel_id, time_stamp), user_id, react_name))
 
 	def reaction_removed(self, slack_event):
 		event = slack_event['event']
@@ -165,15 +221,34 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		self.message_manager.remove_react(channel_id, time_stamp, user_id, react_name)
+
+		self.message_db_adapter.remove_react(channel_id, time_stamp, user_id, react_name)
 
 	def message_posted(self, slack_event):
-		event = slack_event['event']
-		channel_id = event['channel']
-		user_id = event['user']
-		time_stamp = event['ts']
-		text = event['text']
-		self.message_manager.add_message(channel_id, time_stamp, user_id, text)
+		try:
+			event = slack_event['event']
+			channel_id = event['channel']
+		#if self.is_dm_channel(channel_id):
+		#	return
+			user_id = event['user']
+			time_stamp = event['ts']
+			text = event['text']
+			self.message_posted_queue.put(('', channel_id, time_stamp, user_id, text))
+		except:
+			logging.getLogger(__name__).error('Failed to unpack slack event')
+
+
+	def post_to_db(self):
+		msgs = []
+		while not self.message_posted_queue.empty():
+			msgs.append(self.message_posted_queue.get())
+		self.message_db_adapter.add_messages(msgs)
+
+		reacts = []
+		while not self.react_event_queue.empty():
+			reacts.append(self.react_event_queue.get())
+		self.message_db_adapter.add_reacts(reacts)
+
 
 	def handle_slash_command(self, event):
 		event = event.event_info
@@ -181,6 +256,11 @@ class Bot(object):
 
 		if not self.auth_token(token):
 			return
+
+
+		self.msg_dump_timer.cancel()
+		self.post_to_db()
+
 
 		text = event['text'].split(' ')
 		user_id = event['user_id']
@@ -201,6 +281,7 @@ class Bot(object):
 		elif command == REACT_BUZZWORDS:
 			response = self.react_buzzwords(args)
 
+		self.msg_dump_timer.start()
 		self.send_dm(user_id, response)
 
 
@@ -209,23 +290,23 @@ class Bot(object):
 		result_str = []
 		if not re_object:
 			result_str.append('Most reacted to posts\n')
-			msgs = analytics.most_reacted_to_posts(self.message_manager)
+			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
 			result_str.append('Most reacted to posts for ' + self.users[user_id] + '\n')
-			msgs = analytics.most_reacted_to_posts(self.message_manager, re_object.group(0))
+			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg in msgs:
-			result_str.append(str(self.message_manager.get_message_text(msg[0])) + ' : ' + str(msg[1]) + '\n')
+			result_str.append(str(self.message_db_adapter.get_message_text(msg[0])) + ' : ' + str(msg[1]) + '\n')
 
 		return ''.join(result_str)
 
 	def most_used_reacts(self, text):
 		user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
 		if not user_id:
-			result = analytics.most_used_reacts(self.message_manager)
+			result = analytics.most_used_reacts()
 		else:
-			result = analytics.favorite_reacts_of_user(self.message_manager, user_id.group(0))
+			result = analytics.favorite_reacts_of_user(user_id.group(0))
 
 		result_str = []
 		for r in result:
@@ -239,29 +320,28 @@ class Bot(object):
 		channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
 		result_str = []
 		if not channel_id:
-			result = analytics.most_unique_reacts_on_a_post(self.message_manager)
+			result = analytics.most_unique_reacts_on_a_post()
 		else:
-			result = analytics.most_unique_reacts_on_a_post(self.message_manager, channel_id.group(0))
+			result = analytics.most_unique_reacts_on_a_post(channel_id.group(0))
 
 		for r in result:
-			result_str.append(self.message_manager.get_message_text(r[0]) + ' : ' + str(r[1]) + '\n')
+			result_str.append(self.message_db_adapter.get_message_text('', r[0]) + ' : ' + str(r[1]) + '\n')
 
 		return ''.join(result_str)
 
 	def reacts_to_words(self, text):
-		return ' '.join(analytics.reacts_to_words(self.message_manager, self.users, self.channels))
+		return ' '.join(analytics.reacts_to_words(self.users, self.channels))
 
 	def react_buzzwords(self, text):
 
 		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
 		reacts = [r for r in reacts if r.strip(' ')]
-		print(reacts)
 		result_str = []
 
 		try:
 			for r in reacts:
-				result_str.append(r + ': ')
-				react_buzzwords = [item[0] for item in analytics.react_buzzword(self.message_manager, r, self.users, self.channels)]
+				result_str.append(':'+r + ':: ')
+				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, self.users, self.channels, 20)]
 
 				if react_buzzwords:
 					result_str.append(', '.join(react_buzzwords) + '\n')
@@ -272,6 +352,9 @@ class Bot(object):
 			return 'something went wrong ' + str(sys.exc_info()[0])
 
 		return ''.join(result_str)
+
+	def get_common_phrases(self):
+		phrases = analytics.most_common_phrases(self.message_db_adapter)
 
 	def event_handler_loop(self):
 		while True:

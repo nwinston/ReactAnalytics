@@ -2,11 +2,15 @@ from functools import reduce
 from collections import defaultdict
 import operator
 import re
+import db
+from collections import Set
+import nltk
+from nltk.collocations import *
 
-words_to_ignore = [w.lower() for w in ['a', 'the', 'it', 'that', 'and', 'in', 'I', 'have', '']]
+stop_words = set(line.strip() for line in open('stopwords.txt'))
 
-def most_used_reacts(message_manager, count=5):
-	reacts = message_manager.react_counts
+def most_used_reacts(count=5):
+	reacts = db.get_react_counts()
 	return _most_used_reacts(reacts, count)
 
 def _most_used_reacts(reacts, count):
@@ -14,15 +18,15 @@ def _most_used_reacts(reacts, count):
 	spliced = sorted_reacts[:count]
 	return spliced[::-1]
 
-def favorite_reacts_of_all(message_manager, count=5):
-	user_reacts = message_manager.user_reacts
+def favorite_reacts_of_all(users, count=5):
+	user_reacts = {user : db.get_reacts_by_user(user) for user in users}
 	result = {}
 	for user in user_reacts:
-		result[user] = favorite_reacts_of_user(message_manager, user, count)
+		result[user] = favorite_reacts_of_user(user, count)
 	return result
 
-def favorite_reacts_of_user(message_manager, user, count=5):
-	user_reacts = message_manager.get_user_reacts(user)
+def favorite_reacts_of_user(user, count=5):
+	user_reacts = db.get_reacts_by_user(user)
 	return _most_used_reacts(user_reacts, count)
 
 def get_top_by_value(data, count=5):
@@ -33,15 +37,15 @@ def get_top_by_value(data, count=5):
 # Given a list of message ids, get all the unique words
 # in those messages. Parses escaped channels/users
 # (i.e. UserID -> display_name)
-def get_unique_words(message_manager, msgs, users, channels):
+def get_unique_words( msgs, users, channels):
 	channel_re = re.compile('(?<=<#)(.*?)(?=>)')
 	user_re = re.compile('(?<=<@)(.*?)(?=>)')
 
 	words = defaultdict(lambda: 1)
 
 	for msg_id in msgs:
-		msg_text = message_manager.get_message_text(msg_id)
-		split_msg = set([w for w in msg_text.split(' ') if w not in words_to_ignore])
+		msg_text = db.get_message_text('',msg_id)
+		split_msg = set([w for w in msg_text.split(' ') if w not in stop_words])
 		for word in split_msg:
 			# tmp variable in case word is escaped (i.e linked name/channel)
 			key = word
@@ -59,13 +63,13 @@ def get_unique_words(message_manager, msgs, users, channels):
 			words[key] += 1
 	return dict(words)
 
-def react_buzzword(message_manager, react_name, users, channels):
-	msgs = [m for m in message_manager.reacts_on_messages if message_manager.reacts_on_messages.has_react(m, react_name)]
-	words = get_unique_words(message_manager, msgs, users, channels)
-	ret = get_top_by_value(words)
+def react_buzzword(react_name, users, channels, count=5):
+	msgs = db.get_messages_with_react(react_name, False)
+	words = get_unique_words(msgs, users, channels)
+	ret = get_top_by_value(words, count)
 	return ret
 
-def reacts_to_words(message_manager, users, channels, count=5):
+def reacts_to_words(users, channels, count=5):
 
 	word_count = {}
 
@@ -74,10 +78,10 @@ def reacts_to_words(message_manager, users, channels, count=5):
 
 	word_to_reacts = {}
 
-	for msg_id in message_manager.messages:
-		msg_text = message_manager.get_message_text(msg_id)
+	for msg_id in db.get_message_ids():
+		msg_text = db.get_message_text(msg_id)
 		split_msg = set(msg_text.split(' '))
-		reacts_on_msg = message_manager.get_reacts_on_message(msg_id)
+		reacts_on_msg = db.get_reacts_on_message(msg_id)
 		if not reacts_on_msg:
 			continue
 		for w in split_msg:
@@ -113,13 +117,14 @@ def reacts_to_words(message_manager, users, channels, count=5):
 
 	return word_to_reacts
 
-def most_reacted_to_posts(message_manager, user_id=None, count=5):
+def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
-		ids = message_manager.get_user_message_ids(user_id)
+		ids = db.get_messages_by_user(user_id)
 		print(ids)
-		reacts_on_messages = {msg : message_manager.reacts_on_messages[msg] for msg in ids if msg in message_manager.reacts_on_messages}
+		#reacts_on_messages = {msg : message_manager.reacts_on_messages[msg] for msg in ids if msg in message_manager.reacts_on_messages}
+		reacts_on_messages = {msg : db.get_reacts_on_message(msg) for msg in ids}
 	else:
-		reacts_on_messages = message_manager.reacts_on_messages
+		reacts_on_messages = db.get_reacts_on_all_messages()
 
 	react_count = {}
 	print(reacts_on_messages)
@@ -128,38 +133,17 @@ def most_reacted_to_posts(message_manager, user_id=None, count=5):
 
 	return _most_used_reacts(react_count, count)
 
-def most_unique_reacts_on_a_post(message_manager, channel_id=None, count=5):
-	msgs = message_manager.get_message_ids(channel_id)
-	react_count = {msg : len(message_manager.get_reacts_on_message(msg).keys()) for msg in msgs}
+def get_common_phrases(msg_db):
+	texts = msg_db.get_all_message_texts()
+	bigram_measures = nltk.collocations.BigramAssocMeasures()
+	trigram_measures = nltk.collocations.TrigramAssocMeasures()
+
+	finder = BigramCollocationFinder.from_words(texts)
+	finder.apply_freq_filter(3)
+	return finder.nbest(bigram_measures.pmi, 10)
+
+def most_unique_reacts_on_a_post(count=5):
+	msgs = db.get_message_ids()
+	react_count = {msg : len(db.get_reacts_on_message(msg).keys()) for msg in msgs}
 	return _most_used_reacts(react_count, count)
 
-
-
-# most reacts on a post
-# most single reacts on a post
-class ReactCounter:
-	def __init__(self):
-		self.counter = {} # {'word' : {'react' : count} }
-		self.words = {} # {'word' : occurrences_in_different_messages}
-
-	def __str__(self):
-		return str(self.counter)
-
-	def add(self, word, reacts):
-		if word not in self.words:
-			self.words[word] = 1
-		else:
-			self.words[word] += 1
-
-		for react in reacts:
-			self._add(word, react, reacts[react])
-
-	def _add(self, word, react, amt):
-		if word in self.counter:
-			if react in self.counter[word]:
-				count = self.counter[word][react]
-				self.counter[word][react] = count + amt
-			else:
-				self.counter[word][react] = amt
-		else:
-			self.counter[word] = {react : amt}
