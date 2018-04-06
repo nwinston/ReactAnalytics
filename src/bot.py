@@ -219,7 +219,7 @@ class Bot(object):
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
 
-		self.message_db_adapter.remove_react(channel_id, time_stamp, user_id, react_name)
+		self.message_db_adapter.remove_react('',channel_id, time_stamp, user_id, react_name)
 
 	def message_posted(self, slack_event):
 		try:
