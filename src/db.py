@@ -159,7 +159,7 @@ def get_reacts_on_user(user_id):
     if result is None:
         return {}
     conn.close()
-    return {r[0] : r[1] for r in result}
+    return {r[0] : r[1] for r in result.fetchall()}
 
 def get_reacts_by_user(user_id):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -169,7 +169,7 @@ def get_reacts_by_user(user_id):
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
     if result is None:
         return {}
-    reacts = {r[0]: r[1] for r in result}
+    reacts = {r[0]: r[1] for r in result.fetchall()}
     conn.close()
     return reacts
 
@@ -184,7 +184,7 @@ def get_reacts_on_message(msg_id):
     if result is None:
         print ("None")
         return {}
-    reacts = {r[0]: r[1] for r in result}
+    reacts = {r[0]: r[1] for r in result.fetchall()}
     conn.close()
     return reacts
 
@@ -198,7 +198,7 @@ def get_reacts_on_all_messages():
         print ("None")
         return {}
 
-    reacts = {r[0] : r[1] for r in result}
+    reacts = {r[0] : r[1] for r in result.fetchall()}
     conn.close()
     return reacts
 
@@ -211,7 +211,7 @@ def get_messages_by_user(user_id):
     if result is None:
         print ("None")
         return []
-    msgs = [row[0] for row in result]
+    msgs = [row[0] for row in result.fetchall()]
     conn.close()
     return msgs
 
@@ -238,7 +238,7 @@ def get_all_message_texts():
     result = c.execute('SELECT MessageText from Messages')
     if result is None:
         return []
-    texts = [r[0] for r in result]
+    texts = [r[0] for r in result.fetchall()]
     conn.close()
     return texts
 
@@ -255,7 +255,7 @@ def get_message_ids():
     result = c.execute("SELECT MessageID FROM Messages")
     if result is None:
         return []
-    msg_ids = [r[0] for r in result]
+    msg_ids = [r[0] for r in result.fetchall()]
     print(msg_ids)
     conn.close()
     return msg_ids
@@ -267,7 +267,7 @@ def get_react_counts():
     result = c.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
     if result is None:
         return {}
-    reacts = {r[0] : r[1] for r in result}
+    reacts = {r[0] : r[1] for r in result.fetchall()}
     conn.close()
     return reacts
 
@@ -279,6 +279,7 @@ def get_react_count(react_name):
     result = c.execute(query, (react_name, ))
     if result is None:
         return []
+    result = result.fetchall()
     conn.close()
     return [r[0] for r in result]
 
@@ -297,7 +298,7 @@ def get_messages_with_react(react_name, text=False):
 
 
     result = c.execute(query, (react_name, ))
-    msgs = [r[0] for r in result]
+    msgs = [r[0] for r in result.fetchall()]
     conn.close()
     return msgs
 
