@@ -186,6 +186,10 @@ def get_reacts_on_all_messages():
     c = conn.cursor()
 
     result = c.execute("SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
+
+    if result is None:
+        return {}
+
     reacts = {r[0] : r[1] for r in result}
     conn.close()
     return reacts
