@@ -182,6 +182,7 @@ def get_reacts_on_message(msg_id):
         "SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts WHERE MessageReacts.MessageID = %s",(
             msg_id, ))
     if result is None:
+        print ("None")
         return {}
     reacts = {r[0]: r[1] for r in result}
     conn.close()
@@ -194,6 +195,7 @@ def get_reacts_on_all_messages():
     result = c.execute("SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
 
     if result is None:
+        print ("None")
         return {}
 
     reacts = {r[0] : r[1] for r in result}
@@ -207,6 +209,7 @@ def get_messages_by_user(user_id):
 
     result = c.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
     if result is None:
+        print ("None")
         return []
     msgs = [row[0] for row in result]
     conn.close()
