@@ -132,17 +132,21 @@ def _exists_in_user_reacts(conn, user_id, react_name):
         return False
     return True
 
-def msg_exists(msg_id):
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+def msg_exists(msg_id, conn = None):
+    close = (conn is None)
+    if conn is None:
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
 
     result = c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
-    row = result.fetchone()
-    conn.close()
 
-    if row is None:
-        return False
-    return True
+    exists = (result is None)
+
+
+    if close:
+        conn.close()
+
+    return exists
 
 
 def get_reacts_on_user(user_id):
