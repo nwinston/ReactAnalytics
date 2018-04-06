@@ -286,7 +286,7 @@ class Bot(object):
 		re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
 		result_str = []
 		if not re_object:
-			result_str.append('Most reacted to posts\n')
+			result_str.append('Most reacted to posts\n:')
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
