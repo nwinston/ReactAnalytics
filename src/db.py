@@ -140,7 +140,7 @@ def msg_exists(msg_id, conn = None):
 
     result = c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
 
-    exists = (result is None)
+    exists = (result is not None)
 
 
     if close:
@@ -156,6 +156,8 @@ def get_reacts_on_user(user_id):
     msgs = [(m,) for m in msgs]
 
     result = c.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
+    if result is None:
+        return {}
     conn.close()
     return {r[0] : r[1] for r in result}
 
@@ -165,6 +167,8 @@ def get_reacts_by_user(user_id):
 
     result = c.execute(
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
+    if result is None:
+        return {}
     reacts = {r[0]: r[1] for r in result}
     conn.close()
     return reacts
@@ -177,6 +181,8 @@ def get_reacts_on_message(msg_id):
     result = c.execute(
         "SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts WHERE MessageReacts.MessageID = %s",(
             msg_id, ))
+    if result is None:
+        return {}
     reacts = {r[0]: r[1] for r in result}
     conn.close()
     return reacts
@@ -200,6 +206,8 @@ def get_messages_by_user(user_id):
     c = conn.cursor()
 
     result = c.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
+    if result is None:
+        return []
     msgs = [row[0] for row in result]
     conn.close()
     return msgs
@@ -213,6 +221,8 @@ def get_message_text(team_id, msg_id, conn=None):
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
     result = c.execute(query, (msg_id, ))
+    if result is None:
+        return ''
     msg = result.fetchone()
     if msg:
         text = msg[0]
@@ -223,6 +233,8 @@ def get_all_message_texts():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
     result = c.execute('SELECT MessageText from Messages')
+    if result is None:
+        return []
     texts = [r[0] for r in result]
     conn.close()
     return texts
@@ -238,6 +250,8 @@ def get_message_ids():
     c = conn.cursor()
 
     result = c.execute("SELECT MessageID FROM Messages")
+    if result is None:
+        return []
     msg_ids = [r[0] for r in result]
     conn.close()
     return msg_ids
