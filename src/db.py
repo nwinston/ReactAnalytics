@@ -238,6 +238,8 @@ def get_react_counts():
     c = conn.cursor()
 
     result = c.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
+    if result is None:
+        return {}
     reacts = {r[0] : r[1] for r in result}
     conn.close()
     return reacts
@@ -248,6 +250,8 @@ def get_react_count(react_name):
     c = conn.cursor()
     query = 'SELECT sum(MessageReacts.Count) FROM MessageReacts WHERE ReactName = %s'
     result = c.execute(query, (react_name, ))
+    if result is None:
+        return []
     conn.close()
     return [r[0] for r in result]
 
