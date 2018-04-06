@@ -256,6 +256,7 @@ def get_message_ids():
     if result is None:
         return []
     msg_ids = [r[0] for r in result]
+    print(msg_ids)
     conn.close()
     return msg_ids
 
