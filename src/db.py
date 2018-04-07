@@ -183,7 +183,7 @@ def get_reacts_by_user(user_id):
 def get_reacts_on_message(msg_id):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
-
+    print(msg_id)
     c.execute(
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
             msg_id, ))
