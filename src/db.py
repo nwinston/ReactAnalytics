@@ -115,8 +115,9 @@ def remove_react(msg_id, user_id, react_name):
 
 def _exists_in_message_reacts(conn, msg_id, react_name):
     c = conn.cursor()
-    result = c.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
+    c.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
                        (msg_id, react_name))
+    result = c.fetchall()
 
     if result is None:
         return False
@@ -125,9 +126,10 @@ def _exists_in_message_reacts(conn, msg_id, react_name):
 
 def _exists_in_user_reacts(conn, user_id, react_name):
     c = conn.cursor()
-    result = c.execute(
+    c.execute(
         "SELECT * FROM UserReacts WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s",
         (user_id, react_name))
+    result = c.fetchall()
     if result is None:
         return False
     return True
@@ -138,8 +140,8 @@ def msg_exists(msg_id, conn = None):
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
 
-    result = c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
-    result = c.fetchone()
+    c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
+    result = c.fetchall()
 
     exists = (result is not None)
 
