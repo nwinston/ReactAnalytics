@@ -191,7 +191,7 @@ def get_reacts_on_message(msg_id):
     if result is None:
         print ("None")
         return {}
-    reacts = [(r[0], r[1]) for r in result]
+    reacts = {r[0]: r[1] for r in result}
     conn.close()
     return reacts
 
