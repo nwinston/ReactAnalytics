@@ -189,6 +189,7 @@ def get_reacts_on_message(msg_id):
     row = c.fetchone()
     reacts = {}
     while row:
+        print('row: ' + str(row))
         reacts[row[0]] = row[1]
         row = c.fetchone()
     conn.close()
