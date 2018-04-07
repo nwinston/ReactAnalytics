@@ -305,7 +305,7 @@ class Bot(object):
 		else:
 			result = analytics.favorite_reacts_of_user(user_id.group(0))
 
-		result_str = []
+		result_str = ['Most used reacts:']
 		for r in result:
 			result_str.append(':')
 			result_str.append(r[0])
