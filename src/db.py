@@ -21,7 +21,6 @@ def add_messages(msgs):
     c = conn.cursor()
     for m in msgs:
         if not msg_exists(m[0]):
-            print(m[0])
             try:
                 c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', m)
             except Exception as e:
@@ -141,7 +140,7 @@ def msg_exists(msg_id, conn = None):
     if conn is None:
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
-
+    print(msg_exists())
     c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
     result = c.fetchall()
 
