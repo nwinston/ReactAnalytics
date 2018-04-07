@@ -294,7 +294,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg in msgs:
-			result_str.append(str(self.message_db_adapter.get_message_text(msg[0])) + ' : ' + str(msg[1]) + '\n')
+			result_str.append(str(self.message_db_adapter.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
 
 		return ''.join(result_str)
 

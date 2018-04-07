@@ -53,25 +53,25 @@ class MessageDBAdapter(object):
         return msg_ids
 
     def get_message_ids(self, team_id, channel_id=None):
-        return db.get_message_ids(team_id)
+        return db.get_message_ids()
 
     def get_message_text(self, team_id, msg_id):
         return db.get_message_text(team_id, msg_id)
 
     def get_all_message_texts(self, team_id):
-        return db.get_all_message_texts(team_id)
+        return db.get_all_message_texts()
 
     def get_reacts_on_message(self, msg_id):
         return db.get_reacts_on_message(msg_id)
 
     def get_user_reacts(self, team_id, user_id):
-        return db.get_reacts_by_user(team_id, user_id)
+        return db.get_reacts_by_user(user_id)
 
     def get_user_message_ids(self, team_id, user_id):
-        return db.get_messages_by_user(team_id, user_id)
+        return db.get_messages_by_user(user_id)
 
     def get_reacts_on_user(self, team_id, user_id):
-        return db.get_reacts_on_user(team_id, user_id)
+        return db.get_reacts_on_user(user_id)
 
     def add_auth_team(self, code, bot_access_code):
         db.add_auth_team(code, bot_access_code)
