@@ -140,13 +140,12 @@ def msg_exists(msg_id, conn = None):
     if conn is None:
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
-    print(msg_exists())
     c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
     result = c.fetchall()
 
     exists = (result is not None)
 
-
+    print(exists)
     if close:
         conn.close()
 
