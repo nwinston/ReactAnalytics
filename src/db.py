@@ -20,8 +20,8 @@ def add_messages(msgs):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
     for m in msgs:
-        print(m[0])
         if not msg_exists(m[0]):
+            print(m[0])
             try:
                 c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', m)
             except Exception as e:
