@@ -210,7 +210,7 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		self.react_event_queue.put((channel_id, time_stamp, '', user_id, react_name))
+		self.react_event_queue.put(('', channel_id, time_stamp, user_id, react_name))
 
 	def reaction_removed(self, slack_event):
 		event = slack_event['event']

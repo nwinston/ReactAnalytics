@@ -74,6 +74,7 @@ def _add_react(conn, msg_id, team_id, user_id, react_name):
         else:
             c.execute('INSERT INTO MessageReacts VALUES(%s, %s, 1);',(msg_id, react_name))
 
+
         if _exists_in_user_reacts(conn, user_id, react_name):
             c.execute('''UPDATE UserReacts
                     SET Count = Count + 1

@@ -147,7 +147,7 @@ def get_common_phrases(msg_db):
 
 def most_unique_reacts_on_a_post(count=5):
 	msgs = db.get_message_ids()
-	react_count = {msg : len(db.get_reacts_on_message(msg).keys()) for msg in msgs}
+	react_count = {msg : len(db.get_reacts_on_message(msg)) for msg in msgs}
 	print(react_count)
 	return _most_used_reacts(react_count, count)
 
