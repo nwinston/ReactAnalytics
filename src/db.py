@@ -261,6 +261,7 @@ def get_message_ids():
 
     c.execute("SELECT MessageID FROM Messages")
     result = c.fetchall()
+    print(result)
     if result is None:
         return []
     msg_ids = [r[0] for r in result]
@@ -274,6 +275,7 @@ def get_react_counts():
 
     c.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
     result = c.fetchall()
+    print(result)
     if result is None:
         return {}
     reacts = {r[0] : r[1] for r in result}
