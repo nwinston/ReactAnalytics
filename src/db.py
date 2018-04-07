@@ -186,11 +186,11 @@ def get_reacts_on_message(msg_id):
     c.execute(
         "SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts WHERE MessageReacts.MessageID = %s",(
             msg_id, ))
-    result = c.fetchall()
-    if result is None:
-        print ("None")
-        return {}
-    reacts = {r[0]: r[1] for r in result}
+    row = c.fetchone()
+    reacts = {}
+    while row:
+        reacts[row[0]] = row[1]
+        row = c.fetchone()
     print(reacts)
     conn.close()
     return reacts
