@@ -224,17 +224,18 @@ def get_messages_by_user(user_id):
 def get_message_text(team_id, msg_id, conn=None):
 
     query = "SELECT MessageText FROM Messages WHERE Messages.MessageID = %s"
-    text = ""
+    text = ''
     if not conn:
         conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
+    print('get_message_text')
+    print(result)
     if result is None:
         return ''
 
-    if result:
-        text = result[0]
+    text = result[0]
     conn.close()
     return text
 
