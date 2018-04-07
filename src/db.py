@@ -191,7 +191,6 @@ def get_reacts_on_message(msg_id):
     while row:
         reacts[row[0]] = row[1]
         row = c.fetchone()
-    print(reacts)
     conn.close()
     return reacts
 
@@ -264,12 +263,11 @@ def get_message_ids():
     c = conn.cursor()
 
     c.execute("SELECT MessageID FROM Messages")
-    result = c.fetchall()
-    print('get_message_ids')
-    print(result)
-    if result is None:
-        return []
-    msg_ids = [r[0] for r in result]
+    row = c.fetchone()
+    msg_ids = []
+    while row:
+        msg_ids.append(row[0])
+        row = c.fetchone()
     print(msg_ids)
     conn.close()
     return msg_ids
