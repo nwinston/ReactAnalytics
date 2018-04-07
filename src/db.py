@@ -265,6 +265,7 @@ def get_message_ids():
 
     c.execute("SELECT MessageID FROM Messages")
     result = c.fetchall()
+    print('get_message_ids')
     print(result)
     if result is None:
         return []
