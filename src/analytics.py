@@ -82,6 +82,7 @@ def reacts_to_words(users, channels, count=5):
 
 	for msg_id in db.get_message_ids():
 		msg_text = db.get_message_text(msg_id)
+		print(msg_id)
 		split_msg = set(msg_text.split(' '))
 		reacts_on_msg = db.get_reacts_on_message(msg_id)
 		if not reacts_on_msg:
