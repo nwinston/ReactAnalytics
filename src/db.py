@@ -185,6 +185,7 @@ def get_reacts_on_message(msg_id):
         "SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts WHERE MessageReacts.MessageID = %s",(
             msg_id, ))
     result = c.fetchall()
+    print(result)
     if result is None:
         print ("None")
         return {}
