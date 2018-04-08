@@ -10,6 +10,7 @@ from nltk.collocations import *
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
 stop_words = set(line.strip() for line in open(stop_words_file))
+stop_words.add('')
 
 def most_used_reacts(count=5):
 	reacts = db.get_react_counts()
