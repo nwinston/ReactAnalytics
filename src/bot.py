@@ -301,9 +301,9 @@ class Bot(object):
 		result_str = ['Most used reacts:\n']
 		for r in result:
 			result_str.append(':')
-			result_str.append(str(r[0]))
+			result_str.append(str(r))
 			result_str.append(':')
-			result_str.append(' : ' + str(r[1]) + '\n')
+			result_str.append(' : ' + str(result[r]) + '\n')
 		return ''.join(result_str)
 
 	def most_unique_reacts_on_post(self, text):
