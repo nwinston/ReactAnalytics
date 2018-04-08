@@ -122,7 +122,7 @@ def _exists_in_message_reacts(conn, msg_id, react_name):
                        (msg_id, react_name))
     result = c.fetchall()
 
-    if result is None:
+    if result is []:
         return False
     return True
 
@@ -133,7 +133,7 @@ def _exists_in_user_reacts(conn, user_id, react_name):
         "SELECT * FROM UserReacts WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s",
         (user_id, react_name))
     result = c.fetchall()
-    if result is None:
+    if result is []:
         return False
     return True
 
@@ -163,7 +163,7 @@ def get_reacts_on_user(user_id):
 
     result = c.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
     result = c.fetchall()
-    if result is None:
+    if result is []:
         return {}
     conn.close()
     return {r[0] : r[1] for r in result}
@@ -175,7 +175,7 @@ def get_reacts_by_user(user_id):
     c.execute(
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
     result = c.fetchall()
-    if result is None:
+    if result is []:
         return {}
     reacts = {r[0]: r[1] for r in result}
     conn.close()
