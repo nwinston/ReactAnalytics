@@ -230,7 +230,7 @@ def get_message_text(team_id, msg_id, conn=None):
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
-
+    print(result)
     if not result:
         return ''
 
@@ -267,7 +267,6 @@ def get_message_ids():
     while row:
         msg_ids.append(row[0])
         row = c.fetchone()
-    print(msg_ids)
     conn.close()
     return msg_ids
 
