@@ -52,7 +52,7 @@ def add_message(msg, conn=None):
 # msgs = (msg_id, team_id, user_id, react_name)
 def add_reacts(reacts):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-
+    print('add_reacts')
     for react in reacts:
         _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
     conn.commit()
