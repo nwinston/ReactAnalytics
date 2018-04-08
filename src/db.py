@@ -178,10 +178,9 @@ def get_reacts_by_user(user_id):
 
     c.execute(
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
-    row = c.fetchall()
+    row = c.fetchone()
     reacts = {}
     while row:
-        print(row)
         reacts[row[0]] = row[1]
         row = c.fetchone()
     conn.close()
