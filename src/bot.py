@@ -269,8 +269,6 @@ class Bot(object):
 			response = self.most_reacted_to_message(args)
 		elif command == MOST_UNIQUE_REACTS_ON_POST:
 			response = self.most_unique_reacts_on_post(args)
-		elif command == REACTS_TO_WORDS:
-			response = self.reacts_to_words(args)
 		elif command == REACT_BUZZWORDS:
 			response = self.react_buzzwords(args)
 
