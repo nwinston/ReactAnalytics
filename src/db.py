@@ -181,6 +181,7 @@ def get_reacts_by_user(user_id):
     row = c.fetchall()
     reacts = {}
     while row:
+        print(row)
         reacts[row[0]] = row[1]
         row = c.fetchone()
     conn.close()
