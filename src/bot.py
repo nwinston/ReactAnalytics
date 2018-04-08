@@ -11,11 +11,10 @@ from infinitetimer import InfiniteTimer
 from util import React, Message
 import db
 
-MOST_USED_REACTS = 'most_used_reacts'
+MOST_USED_REACTS = 'most_used'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
-MOST_UNIQUE_REACTS_ON_POST = 'most_unique_reacts_on_post'
-REACTS_TO_WORDS = 'reacts_to_words'
-REACT_BUZZWORDS = 'react_buzzwords'
+MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
+REACT_BUZZWORDS = 'buzzwords'
 
 VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACT_BUZZWORDS]
 
@@ -208,7 +207,7 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		logging.getLogger(__name__).debug(slack_event)
+		logging.getLogger(__name__).error(slack_event)
 		db.add_react(React('', channel_id, time_stamp, user_id, react_name))
 
 	def reaction_removed(self, slack_event):
