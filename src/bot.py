@@ -272,6 +272,7 @@ class Bot(object):
 		elif command == REACT_BUZZWORDS:
 			response = self.react_buzzwords(args)
 
+		print(response)
 		self.send_dm(user_id, response)
 
 
