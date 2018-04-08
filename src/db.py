@@ -207,11 +207,14 @@ def get_reacts_on_all_messages():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
 
-    c.execute("SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
+    c.execute("SELECT MessageReacts.MessageID, MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
     row = c.fetchone()
     reacts = {}
     while row:
-        reacts[row[0]] = row[1]
+        msg_id = row[0]
+        react_name = row[1]
+        count = row[2]
+        reacts[msg_id][react_name] = count
         row = c.fetchone()
     conn.close()
     return reacts
