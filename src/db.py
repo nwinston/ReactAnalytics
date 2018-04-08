@@ -214,6 +214,8 @@ def get_reacts_on_all_messages():
         msg_id = row[0]
         react_name = row[1]
         count = row[2]
+        if msg_id not in reacts:
+            reacts[msg_id] = {}
         reacts[msg_id][react_name] = count
         row = c.fetchone()
     conn.close()

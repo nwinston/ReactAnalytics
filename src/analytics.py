@@ -150,7 +150,6 @@ def get_common_phrases(msg_db):
 	return finder.nbest(bigram_measures.pmi, 10)
 
 def most_unique_reacts_on_a_post(count=5):
-	msgs = db.get_message_ids()
 	react_count = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
 	react_count = {msg_id : len(react_count[msg_id]) for msg_id in react_count}
 	print(react_count)
