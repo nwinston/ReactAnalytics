@@ -276,11 +276,11 @@ def get_react_counts():
     c = conn.cursor()
 
     c.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
-    result = c.fetchall()
-    print(result)
-    if result is None:
-        return {}
-    reacts = {r[0] : r[1] for r in result}
+    row = c.fetchone()
+    reacts = {}
+    while row:
+        reacts[row[0]] = row[1]
+        row = c.fetchone()
     conn.close()
     return reacts
 
@@ -290,12 +290,13 @@ def get_react_count(react_name):
     c = conn.cursor()
     query = 'SELECT sum(MessageReacts.Count) FROM MessageReacts WHERE ReactName = %s'
     c.execute(query, (react_name, ))
-    result = c.fetchall()
-    if result is None:
-        return []
-
+    row = c.fetchone()
+    count = []
+    while row:
+        count.append(row[0])
+        row = c.fetchone()
     conn.close()
-    return [r[0] for r in result]
+    return count
 
 def get_messages_with_react(react_name, text=False):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -312,11 +313,11 @@ def get_messages_with_react(react_name, text=False):
 
 
     c.execute(query, (react_name, ))
-    result = c.fetchall()
-    print(result)
-    if result is None:
-        return []
-    msgs = [r[0] for r in result]
+    row = c.fetchone()
+    msgs = []
+    while row:
+        msgs.append(row[0])
+        row = c.fetchone()
     conn.close()
     return msgs
 
