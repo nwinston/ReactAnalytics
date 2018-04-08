@@ -253,7 +253,7 @@ def get_all_message_texts():
 
 def get_message_text_from_ids(msg_ids):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    result = {msg_id: get_message_text(conn, msg_id) for msg_id in msg_ids}
+    result = {msg_id: get_message_text('', msg_id, conn) for msg_id in msg_ids}
     conn.close()
     return result
 
