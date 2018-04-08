@@ -187,6 +187,7 @@ def get_reacts_on_message(msg_id):
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
             msg_id, ))
     row = c.fetchone()
+    print(row)
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
