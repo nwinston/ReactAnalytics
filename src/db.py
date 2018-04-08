@@ -183,14 +183,12 @@ def get_reacts_by_user(user_id):
 def get_reacts_on_message(msg_id):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
-    print(msg_id)
     c.execute(
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
             msg_id, ))
     row = c.fetchone()
     reacts = {}
     while row:
-        print('row: ' + str(row))
         reacts[row[0]] = row[1]
         row = c.fetchone()
     conn.close()
@@ -203,7 +201,6 @@ def get_reacts_on_all_messages():
     c.execute("SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
     result = c.fetchall()
     if result is None:
-        print ("None")
         return {}
 
     reacts = {r[0] : r[1] for r in result}
@@ -218,7 +215,6 @@ def get_messages_by_user(user_id):
     c.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
     result = c.fetchall()
     if result is None:
-        print ("None")
         return []
     msgs = [row[0] for row in result]
     conn.close()
@@ -234,8 +230,6 @@ def get_message_text(team_id, msg_id, conn=None):
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
-    print('get_message_text')
-    print(result)
     if result is None:
         return ''
 
@@ -316,6 +310,7 @@ def get_messages_with_react(react_name, text=False):
 
     c.execute(query, (react_name, ))
     result = c.fetchall()
+    print(result)
     if result is None:
         return []
     msgs = [r[0] for r in result]
