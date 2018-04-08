@@ -315,7 +315,9 @@ class Bot(object):
 			result = analytics.most_unique_reacts_on_a_post(channel_id.group(0))
 
 		for r in result:
-			result_str.append(db.get_message_text('', r[0]) + ' : ' + str(r[1]) + '\n')
+			text = db.get_message_text('', r[0])
+			if text:
+				result_str.append(text + ' : ' + str(r[1]) + '\n')
 
 		return ''.join(result_str)
 
