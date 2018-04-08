@@ -17,6 +17,7 @@ def most_used_reacts(count=5):
 	return _most_used_reacts(reacts, count)
 
 def _most_used_reacts(reacts, count):
+	print(reacts)
 	sorted_reacts = sorted(reacts.items(), key=operator.itemgetter(1))[::-1]
 	spliced = sorted_reacts[:count]
 	return spliced[::-1]
