@@ -193,7 +193,6 @@ def get_reacts_on_message(msg_id):
     c.execute(
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
             msg_id, ))
-    print(msg_id)
     row = c.fetchone()
     reacts = {}
     while row:
@@ -244,7 +243,6 @@ def get_message_text(team_id, msg_id, conn=None):
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
-    print(result)
     if not result:
         return ''
 

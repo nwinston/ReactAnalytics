@@ -137,7 +137,10 @@ def most_reacted_to_posts(user_id=None, count=5):
 	react_count = {}
 	print(reacts_on_messages)
 	for msg_id in reacts_on_messages:
-		react_count[msg_id] = reduce((lambda x,y: x + y), reacts_on_messages[msg_id].values())
+		count = 0
+		for r in reacts_on_messages[msg_id]:
+			count += reacts_on_messages[msg_id][r]
+		react_count[msg_id] = count
 
 	return _most_used_reacts(react_count, count)
 
