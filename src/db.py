@@ -162,12 +162,14 @@ def get_reacts_on_user(user_id):
     c = conn.cursor()
     msgs = [(m,) for m in msgs]
 
-    result = c.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
-    result = c.fetchall()
-    if result is []:
-        return {}
+    c.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
+    row = c.fetchone()
+    reacts = {}
+    while row:
+        reacts[row[0]] = row[1]
+        row = c.fetchone()
     conn.close()
-    return {r[0] : r[1] for r in result}
+    return reacts
 
 def get_reacts_by_user(user_id):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -175,10 +177,11 @@ def get_reacts_by_user(user_id):
 
     c.execute(
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
-    result = c.fetchall()
-    if result is []:
-        return {}
-    reacts = {r[0]: r[1] for r in result}
+    row = c.fetchall()
+    reacts = {}
+    while row:
+        reacts[row[0]] = row[1]
+        row = c.fetchone()
     conn.close()
     return reacts
 
@@ -202,11 +205,11 @@ def get_reacts_on_all_messages():
     c = conn.cursor()
 
     c.execute("SELECT MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
-    result = c.fetchall()
-    if result is None:
-        return {}
-
-    reacts = {r[0] : r[1] for r in result}
+    row = c.fetchone()
+    reacts = {}
+    while row:
+        reacts[row[0]] = row[1]
+        row = c.fetchone()
     conn.close()
     return reacts
 
@@ -216,10 +219,11 @@ def get_messages_by_user(user_id):
     c = conn.cursor()
 
     c.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
-    result = c.fetchall()
-    if result is None:
-        return []
-    msgs = [row[0] for row in result]
+    row = c.fetchone()
+    msgs = []
+    while row:
+        msgs.append(row[0])
+        row = c.fetchone()
     conn.close()
     return msgs
 
@@ -232,7 +236,7 @@ def get_message_text(team_id, msg_id, conn=None):
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
-    print(result)
+
     if not result:
         return ''
 
@@ -244,10 +248,12 @@ def get_all_message_texts():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
     c.execute('SELECT MessageText from Messages')
-    result = c.fetchall()
-    if not result:
-        return []
-    texts = [r[0] for r in result]
+    row = c.fetchone()
+    texts = []
+    while row:
+        texts.append(row[0])
+        row = c.fetchone()
+
     conn.close()
     return texts
 
