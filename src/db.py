@@ -58,6 +58,12 @@ def add_reacts(reacts):
     conn.commit()
     conn.close()
 
+def add_react(react):
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
+    conn.commit()
+    conn.close()
+
 
 def _add_react(conn, msg_id, team_id, user_id, react_name):
     c = conn.cursor()

@@ -251,6 +251,7 @@ class Bot(object):
 		token = event['token']
 
 		if not self.auth_token(token):
+			logging.getLogger(__name__).warning('Not authed')
 			return
 
 
