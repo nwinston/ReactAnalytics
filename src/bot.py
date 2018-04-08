@@ -208,6 +208,7 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
+		logging.getLogger(__name__).debug(slack_event)
 		db.add_react(React('', channel_id, time_stamp, user_id, react_name))
 
 	def reaction_removed(self, slack_event):
