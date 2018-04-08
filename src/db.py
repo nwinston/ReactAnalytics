@@ -61,11 +61,8 @@ def add_reacts(reacts):
 
 def _add_react(conn, msg_id, team_id, user_id, react_name):
     c = conn.cursor()
-    print('add react')
-    print(msg_id + ", " + user_id + ", " + react_name)
     try:
         if _exists_in_message_reacts(conn, msg_id, react_name):
-            print('msg exists in MessageReacts')
 
             query = ('''UPDATE MessageReacts
                     SET Count = Count + 1
@@ -77,7 +74,6 @@ def _add_react(conn, msg_id, team_id, user_id, react_name):
 
 
         if _exists_in_user_reacts(conn, user_id, react_name):
-            print('msg exists in UserReacts')
             c.execute('''UPDATE UserReacts
                     SET Count = Count + 1
                     WHERE UserReacts.UserID = %s
@@ -121,7 +117,6 @@ def _exists_in_message_reacts(conn, msg_id, react_name):
     c.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
                        (msg_id, react_name))
     result = c.fetchone()
-    print(result)
     if not result:
         return False
     return True
@@ -133,7 +128,6 @@ def _exists_in_user_reacts(conn, user_id, react_name):
         "SELECT * FROM UserReacts WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s",
         (user_id, react_name))
     result = c.fetchone()
-    print(result)
     if not result:
         return False
     return True

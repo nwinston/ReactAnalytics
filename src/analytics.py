@@ -69,6 +69,7 @@ def get_unique_words( msgs, users, channels):
 def react_buzzword(react_name, users, channels, count=5):
 	msgs = db.get_messages_with_react(react_name, False)
 	words = get_unique_words(msgs, users, channels)
+	print(words)
 	ret = get_top_by_value(words, count)
 	return ret
 
