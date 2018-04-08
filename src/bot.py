@@ -301,6 +301,8 @@ class Bot(object):
 		result_str = ['Most used reacts:\n']
 		for res in result:
 			for r in res:
+				print(res)
+				print(r)
 				result_str.append(':')
 				result_str.append(str(r[0]))
 				result_str.append(':')
