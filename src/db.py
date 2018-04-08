@@ -233,7 +233,7 @@ def get_message_text(team_id, msg_id, conn=None):
     c = conn.cursor()
     c.execute(query, (msg_id, ))
     result = c.fetchone()
-    if result is None:
+    if not result:
         return ''
 
     text = result[0]
@@ -245,7 +245,7 @@ def get_all_message_texts():
     c = conn.cursor()
     c.execute('SELECT MessageText from Messages')
     result = c.fetchall()
-    if result is None:
+    if not result:
         return []
     texts = [r[0] for r in result]
     conn.close()
