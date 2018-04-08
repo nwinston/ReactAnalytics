@@ -5,10 +5,11 @@ from threading import Thread
 import re
 from slackclient import SlackClient
 import analytics
-from message import MessageDBAdapter, msg_id_string
 from enum import Enum
 import logging
 from infinitetimer import InfiniteTimer
+from util import React, Message
+import db
 
 MOST_USED_REACTS = 'most_used_reacts'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
@@ -39,7 +40,6 @@ class Bot(object):
 		self.workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
 		self.users = {} # user_id : {'user_name' : user_name, 'display_name' : display_name}
 		self.channels = {} #channel_id : channel_name
-		self.message_db_adapter = MessageDBAdapter()
 
 		self.event_queue = Queue()
 		self.message_posted_queue = Queue()
@@ -57,10 +57,10 @@ class Bot(object):
 		msgs, reacts = self.load_message_history()
 
 		# dont add messages already in db
-		msgs = [msg for msg in msgs if not self.message_db_adapter.msg_in_db(msg[0], msg[1], msg[2])]
-		reacts = [react for react in reacts if not self.message_db_adapter.msg_in_db(react[0], react[1], react[2])]
-		self.message_db_adapter.add_messages(msgs)
-		self.message_db_adapter.add_reacts(reacts)
+		msgs = [msg for msg in msgs if not db.msg_exists(msg.msg_id)]
+		reacts = [react for react in reacts if not db.msg_exists(react.msg_id)]
+		db.add_messages(msgs)
+		db.add_reacts(reacts)
 
 
 	'''
@@ -115,8 +115,9 @@ class Bot(object):
 					reacts_on_msg = msg['reactions']
 					for r in reacts_on_msg:
 						name = r['name']
-						reacts.extend((team_id, channel, ts, react_user, name) for react_user in r['users'])
-				messages.append((team_id, channel, ts, msg_user, msg_text))
+						reacts.extend(React(team_id, channel, ts, react_user, name) for react_user in r['users'])
+
+				messages.append(Message(team_id, channel, ts, msg_user, msg_text))
 		return messages, reacts
 
 	def get_channel_message_history(self, channel_id):
@@ -171,7 +172,6 @@ class Bot(object):
 		if response['ok']:
 			team_id = response['team_id']
 			bot_token = response['bot']['bot_access_token']
-			self.message_db_adapter.add_auth_team(team_id, bot_token)
 			self.bot_client = SlackClient(bot_token)
 
 
@@ -210,7 +210,8 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		self.react_event_queue.put(('', channel_id, time_stamp, user_id, react_name))
+		react = React('', channel_id, time_stamp, user_id, react_name)
+		self.react_event_queue.put(react)
 
 	def reaction_removed(self, slack_event):
 		event = slack_event['event']
@@ -219,7 +220,7 @@ class Bot(object):
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
 
-		self.message_db_adapter.remove_react('',channel_id, time_stamp, user_id, react_name)
+		db.remove_react(React('',channel_id, time_stamp, user_id, react_name))
 
 	def message_posted(self, slack_event):
 		try:
@@ -230,7 +231,8 @@ class Bot(object):
 			user_id = event['user']
 			time_stamp = event['ts']
 			text = event['text']
-			self.message_posted_queue.put(('', channel_id, time_stamp, user_id, text))
+			msg = Message('', channel_id, time_stamp, user_id, text)
+			self.message_posted_queue.put(msg)
 		except:
 			logging.getLogger(__name__).error('Failed to unpack slack event')
 
@@ -239,12 +241,12 @@ class Bot(object):
 		msgs = []
 		while not self.message_posted_queue.empty():
 			msgs.append(self.message_posted_queue.get())
-		self.message_db_adapter.add_messages(msgs)
+		db.add_messages(msgs)
 
 		reacts = []
 		while not self.react_event_queue.empty():
 			reacts.append(self.react_event_queue.get())
-		self.message_db_adapter.add_reacts(reacts)
+		db.add_reacts(reacts)
 
 
 	def handle_slash_command(self, event):
@@ -294,7 +296,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg in msgs:
-			result_str.append(str(self.message_db_adapter.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
+			result_str.append(str(db.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
 
 		return ''.join(result_str)
 
@@ -322,7 +324,7 @@ class Bot(object):
 			result = analytics.most_unique_reacts_on_a_post(channel_id.group(0))
 
 		for r in result:
-			result_str.append(self.message_db_adapter.get_message_text('', r[0]) + ' : ' + str(r[1]) + '\n')
+			result_str.append(db.get_message_text('', r[0]) + ' : ' + str(r[1]) + '\n')
 
 		return ''.join(result_str)
 
@@ -350,8 +352,6 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	def get_common_phrases(self):
-		phrases = analytics.most_common_phrases(self.message_db_adapter)
 
 	def event_handler_loop(self):
 		while True:

@@ -22,6 +22,7 @@ def add_messages(msgs):
     for m in msgs:
         if not msg_exists(m[0]):
             try:
+                msg_tuple = (m.msg_id, m.team_id, m.user_id, m.text)
                 c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', m)
             except Exception as e:
                 print(e)
@@ -39,7 +40,7 @@ def add_message(msg, conn=None):
     c = conn.cursor()
 
     try:
-        c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);',(msg))
+        c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', (msg.msg_id, msg.team_id, msg.user_id, msg.text))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
@@ -53,17 +54,14 @@ def add_reacts(reacts):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     for react in reacts:
-        msg_id = react[0]
-        team_id = react[1]
-        user_id = react[2]
-        react_name = react[3]
-        _add_react(conn, msg_id, team_id, user_id, react_name)
+        _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
     conn.commit()
     conn.close()
 
 
 def _add_react(conn, msg_id, team_id, user_id, react_name):
     c = conn.cursor()
+    print('add react')
     try:
         if _exists_in_message_reacts(conn, msg_id, react_name):
             query = ('''UPDATE MessageReacts
@@ -88,7 +86,7 @@ def _add_react(conn, msg_id, team_id, user_id, react_name):
         print(e)
         print(traceback.print_exc())
 
-def remove_react(msg_id, user_id, react_name):
+def remove_react(react):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
 
@@ -96,7 +94,7 @@ def remove_react(msg_id, user_id, react_name):
         c.execute('''UPDATE MessageReacts
                 SET Count = Count - 1
                 WHERE MessageReacts.MessageID = %s
-                AND MessageReacts.ReactName = %s''', (msg_id, react_name))
+                AND MessageReacts.ReactName = %s''', (react.msg_id, react.react_name))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
@@ -105,7 +103,7 @@ def remove_react(msg_id, user_id, react_name):
         c.execute('''
               UPDATE UserReacts
               SET Count = Count - 1
-              WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s''', (user_id, react_name))
+              WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s''', (react.user_id, react.react_name))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
