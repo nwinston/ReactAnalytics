@@ -299,12 +299,12 @@ class Bot(object):
 			result = analytics.favorite_reacts_of_user(user_id.group(0))
 
 		result_str = ['Most used reacts:\n']
-		for r in result:
-			print(r)
-			result_str.append(':')
-			result_str.append(str(r[0]))
-			result_str.append(':')
-			result_str.append(' : ' + str(r[1]) + '\n')
+		for res in result:
+			for r in res:
+				result_str.append(':')
+				result_str.append(str(r[0]))
+				result_str.append(':')
+				result_str.append(' : ' + str(r[1]) + '\n')
 		return ''.join(result_str)
 
 	def most_unique_reacts_on_post(self, text):
