@@ -45,8 +45,6 @@ class Bot(object):
 		self.message_posted_queue = Queue()
 		self.react_event_queue = Queue()
 		self.load_users()
-		self.msg_dump_timer = InfiniteTimer(TIMER_INTERVAL, self.post_to_db)
-		self.msg_dump_timer.start()
 		event_thread = Thread(target=self.event_handler_loop)
 		event_thread.start()
 		#t = Thread(self._on_init())
@@ -210,8 +208,7 @@ class Bot(object):
 		user_id = event['user']
 		channel_id = event['item']['channel']
 		time_stamp = event['item']['ts']
-		react = React('', channel_id, time_stamp, user_id, react_name)
-		self.react_event_queue.put(react)
+		db.add_react(React('', channel_id, time_stamp, user_id, react_name))
 
 	def reaction_removed(self, slack_event):
 		event = slack_event['event']
@@ -232,7 +229,7 @@ class Bot(object):
 			time_stamp = event['ts']
 			text = event['text']
 			msg = Message('', channel_id, time_stamp, user_id, text)
-			self.message_posted_queue.put(msg)
+			db.add_message(msg)
 		except:
 			logging.getLogger(__name__).error('Failed to unpack slack event')
 
@@ -257,9 +254,6 @@ class Bot(object):
 			return
 
 
-		self.msg_dump_timer.cancel()
-		self.post_to_db()
-
 
 		text = event['text'].split(' ')
 		user_id = event['user_id']
@@ -280,7 +274,6 @@ class Bot(object):
 		elif command == REACT_BUZZWORDS:
 			response = self.react_buzzwords(args)
 
-		self.msg_dump_timer.start()
 		self.send_dm(user_id, response)
 
 
