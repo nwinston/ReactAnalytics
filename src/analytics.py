@@ -45,8 +45,10 @@ def get_unique_words( msgs, users, channels):
 
 	words = defaultdict(lambda: 1)
 
+	msgs = db.get_message_text_from_ids(msgs)
+
 	for msg_id in msgs:
-		msg_text = db.get_message_text('', msg_id)
+		msg_text = msgs[msg_id]
 		print(msg_id)
 		print(msg_text)
 		split_msg = set([w for w in msg_text.split(' ') if w not in stop_words])
