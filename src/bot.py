@@ -23,7 +23,7 @@ TIMER_INTERVAL = 2
 
 authed_teams = {}
 class Bot(object):
-	@classmethod
+	event_queue = Queue()
 	def __init__(self):
 		super(Bot, self).__init__()
 		self.name = "reactanalyticsbot"
@@ -42,7 +42,6 @@ class Bot(object):
 		self.users = {} # user_id : {'user_name' : user_name, 'display_name' : display_name}
 		self.channels = {} #channel_id : channel_name
 
-		self.event_queue = Queue()
 		self.message_posted_queue = Queue()
 		self.react_event_queue = Queue()
 		self.load_users()
@@ -186,8 +185,8 @@ class Bot(object):
 	'''
 
 	@classmethod
-	def on_event(self, event_type, slack_event):
-		self.event_queue.put(Event(event_type, slack_event))
+	def on_event(cls, event_type, slack_event):
+		cls.event_queue.put(Event(event_type, slack_event))
 
 	def handle_api_event(self, event):
 		slack_event = event.event_info
