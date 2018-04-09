@@ -5,8 +5,6 @@ from rq import Queue
 from rq.job import Job
 from worker import conn
 
-logging.basicConfig(level=logging.WARNING)
-
 app = Flask(__name__)
 pyBot = bot.Bot()
 q = Queue(connection=conn)
@@ -49,30 +47,6 @@ def hears():
         log.log_info('Queued event. ID: ' + job.get_id())
 
     return make_response('Non-reaction event', 200)
-
-'''
-@app.route(bot.MOST_USED_REACTS, methods=['GET', 'POST'])
-def most_used_reacts():
-    pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
-    return make_response('', 200)
-
-
-
-@app.route(bot.MOST_REACTED_TO_MESSAGES, methods=['GET', 'POST'])
-def most_reacted_to_messages():
-    pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
-    return make_response('', 200)
-
-@app.route(bot.MOST_UNIQUE_REACTS_ON_POST, methods=['GET', 'POST'])
-def most_unique_reacts_on_post():
-    pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
-    return make_response('', 200)
-
-@app.route(bot.REACTS_TO_WORDS, methods=['GET', 'POST'])
-def reacts_to_words():
-    pyBot.on_event(bot.EventType.SLASH_COMMAND, parse_slash_command(request))
-    return make_response('', 200)
-'''
 
 
 
