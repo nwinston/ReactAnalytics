@@ -194,6 +194,7 @@ def get_reacts_per_user():
     row = c.fetchone()
     while row:
         print(row)
+        row = c.fetchone()
 
 
 def get_reacts_on_message(msg_id):
