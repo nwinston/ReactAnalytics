@@ -43,6 +43,7 @@ def hears():
         return make_response(message, 403, {"X-Slack-No-Retry": 1})
 
     if 'event' in slack_event:
+        log.log_info('hears')
         job = q.enqueue_call(func=pyBot.on_event, args=(bot.EventType.API_EVENT, slack_event))
         log.log_info('Queued event. ID: ' + job.get_id())
 
