@@ -186,6 +186,15 @@ def get_reacts_by_user(user_id):
     conn.close()
     return reacts
 
+def get_reacts_per_user():
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    c = conn.cursor()
+
+    c.execute('SELECT UserID, ReactName, sum(Count) FROM UserReacts GROUP BY ReactName')
+    row = c.fetchone()
+    while row:
+        print(row)
+
 
 def get_reacts_on_message(msg_id):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -310,6 +319,7 @@ def get_react_count(react_name):
         row = c.fetchone()
     conn.close()
     return count
+
 
 def get_messages_with_react(react_name, text=False):
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')

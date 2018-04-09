@@ -15,6 +15,7 @@ MOST_USED_REACTS = 'most_used'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
 MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
 REACT_BUZZWORDS = 'buzzwords'
+MOST_REACTS = 'most_reacts'
 
 VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACT_BUZZWORDS]
 
@@ -271,6 +272,8 @@ class Bot(object):
 			response = self.most_unique_reacts_on_post(args)
 		elif command == REACT_BUZZWORDS:
 			response = self.react_buzzwords(args)
+		elif command == MOST_REACTS:
+			response = self.most_reacts(args)
 
 		print(response)
 		self.send_dm(user_id, response)
@@ -291,6 +294,10 @@ class Bot(object):
 			result_str.append(str(db.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
 
 		return ''.join(result_str)
+
+	def most_reacts(self):
+		users = analytics.users_with_most_reacts()
+
 
 	def most_used_reacts(self, text):
 		user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
