@@ -86,7 +86,7 @@ def get_help_response():
 def slash_command():
     slash_command = parse_slash_command(request)
     text = slash_command['text']
-    response_text = 'use [/react_analytics help] for options'
+    response_text = 'use [/reacts help] for options'
     if text.lower().strip() == 'help':
         return make_response(get_help_response(), 200)
     if text.split(' ')[0] in bot.VALID_COMMANDS:
