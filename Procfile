@@ -1,1 +1,2 @@
-web: honcho -f ProcfileHoncho start
+web: gunicorn --chdir src app:app
+worker: python -u src/worker.py
