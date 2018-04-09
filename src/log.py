@@ -14,4 +14,4 @@ def log_debug(msg):
 
 def log(msg, level):
     calling_function = inspect.stack()[2][3]
-    logging.getLogger(__name__).log(level, 'From ' + calling_function + ": " + msg)
+    print('From ' + calling_function + ": " + msg)
