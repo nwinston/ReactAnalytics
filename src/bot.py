@@ -295,7 +295,7 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	def most_reacts(self):
+	def most_reacts(self, args):
 		users = analytics.users_with_most_reacts()
 
 
