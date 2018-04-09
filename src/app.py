@@ -73,13 +73,14 @@ def reacts_to_words():
 
 help_response = '''
 /reacts {} {}
-''' * 4
+''' * len(bot.VALID_COMMANDS)
 
 def get_help_response():
     return help_response.format(bot.MOST_USED_REACTS, '[_optional_ *@User*]',
                                 bot.MOST_UNIQUE_REACTS_ON_POST, '[_optional_ *@User*]',
                                 bot.MOST_REACTED_TO_MESSAGES, '[_optional_ *@User*]',
-                                bot.REACT_BUZZWORDS, '[_required_ :react:, :react2: ...]'
+                                bot.REACT_BUZZWORDS, '[_required_ :react:, :react2: ...]',
+                                bot.MOST_REACTS
                                 )
 
 @app.route('/react_analytics', methods=['GET', 'POST'])
