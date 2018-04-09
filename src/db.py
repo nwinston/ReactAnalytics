@@ -1,6 +1,7 @@
 import traceback
 import os
 import psycopg2
+import log
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
@@ -9,7 +10,7 @@ def remove_message(msg_id):
 
 # msgs = (msg_id, team_id, user_id, text)
 def add_messages(msgs):
-
+    log.log_info('add_messages')
     '''
     try:
         c.executemany('INSERT INTO Messages VALUES(%s, %s, %s);', msgs)
@@ -25,14 +26,14 @@ def add_messages(msgs):
                 msg_tuple = (m.msg_id, m.team_id, m.user_id, m.text)
                 c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', msg_tuple)
             except Exception as e:
-                print(e)
+                log.log_error(e.message)
     conn.commit()
     conn.close()
 
 
 
 def add_message(msg, conn=None):
-
+    log.log_info('add_message')
     close = (conn is None)
 
     if not conn:
@@ -51,22 +52,23 @@ def add_message(msg, conn=None):
 
 # msgs = (msg_id, team_id, user_id, react_name)
 def add_reacts(reacts):
+    log.log_info('add_reacts')
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    print('add_reacts')
     for react in reacts:
         _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
     conn.commit()
     conn.close()
 
 def add_react(react):
+    log.log_info('add_react')
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-    print('add_react')
     _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
     conn.commit()
     conn.close()
 
 
 def _add_react(conn, msg_id, team_id, user_id, react_name):
+    log.log_info('_add_react')
     c = conn.cursor()
     try:
         if _exists_in_message_reacts(conn, msg_id, react_name):
@@ -94,6 +96,7 @@ def _add_react(conn, msg_id, team_id, user_id, react_name):
         print(traceback.print_exc())
 
 def remove_react(react):
+    log.log_info('remove_react')
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
 

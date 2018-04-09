@@ -14,3 +14,5 @@ class Message:
         self.msg_id = msg_id_string(channel_id, time_stamp)
         self.user_id = user_id
         self.text = text
+
+

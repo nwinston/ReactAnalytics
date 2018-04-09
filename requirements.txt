@@ -15,3 +15,5 @@ requests==2.11.1
 psycopg2
 gunicorn
 nltk
+redis
+rq

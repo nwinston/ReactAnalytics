@@ -1,11 +1,15 @@
 from flask import Flask, request, make_response, render_template, abort
 import bot
-import logging
+import log
+from rq import Queue
+from rq.job import Job
+from worker import conn
 
 logging.basicConfig(level=logging.WARNING)
 
 app = Flask(__name__)
 pyBot = bot.Bot()
+q = Queue(connection=conn)
 
 
 
@@ -41,7 +45,8 @@ def hears():
         return make_response(message, 403, {"X-Slack-No-Retry": 1})
 
     if 'event' in slack_event:
-        pyBot.on_event(bot.EventType.API_EVENT, slack_event)
+        job = q.enqueue_call(func=pyBot.on_event, args=(bot.EventType.API_EVENT, slack_event))
+        log.log_info('Queued event. ID: ' + job.get_id())
 
     return make_response('Non-reaction event', 200)
 
@@ -91,7 +96,8 @@ def slash_command():
     if text.lower().strip() == 'help':
         return make_response(get_help_response(), 200)
     if text.split(' ')[0] in bot.VALID_COMMANDS:
-        pyBot.on_event(bot.EventType.SLASH_COMMAND, slash_command)
+        job = q.enqueue_call(func=pyBot.on_event, args=(bot.EventType.SLASH_COMMAND, slash_command))
+        log.log_info('Queued event. ID: ' + job.get_id())
         response_text = ''
     return make_response(response_text, 200)
 
