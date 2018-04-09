@@ -163,5 +163,5 @@ def most_unique_reacts_on_a_post(count=5):
 	return _most_used_reacts(react_count, count)
 
 def users_with_most_reacts(count=5):
-	db.get_reacts_per_user()
+	most_reacts = db.get_reacts_per_user()
 
