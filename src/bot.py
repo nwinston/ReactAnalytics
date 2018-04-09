@@ -23,6 +23,7 @@ TIMER_INTERVAL = 2
 
 authed_teams = {}
 class Bot(object):
+	@classmethod
 	def __init__(self):
 		super(Bot, self).__init__()
 		self.name = "reactanalyticsbot"
