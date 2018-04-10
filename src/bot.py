@@ -69,7 +69,6 @@ class Bot(object):
 				if 'display_name' in user['profile']:
 					user_info['display_name'] = user['profile']['display_name']
 				users[user_id] = user_info
-				print(users)
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
@@ -296,6 +295,8 @@ class Bot(object):
 		for user, count in user_reacts.items():
 			if user in users:
 				result_str.append(users[user_id] + ': ' + count + '\n')
+			else:
+				print(user + 'not in users dictionary')
 		return ''.join(result_str)
 
 
