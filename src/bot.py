@@ -180,7 +180,6 @@ class Bot(object):
 		cls.lock.acquire()
 		try:
 			evnt = Event(event_type, slack_event)
-			print(str(evnt))
 			cls.event_queue.put(evnt)
 		finally:
 			cls.lock.release()
