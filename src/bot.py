@@ -190,6 +190,7 @@ class Bot(object):
 		cls.event_queue.put(Event(event_type, slack_event))
 
 	def handle_api_event(self, event):
+		print('handle_api_event')
 		slack_event = event.event_info
 		event_type = slack_event['event']['type']
 
