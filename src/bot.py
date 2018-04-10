@@ -178,6 +178,7 @@ class Bot(object):
 
 	@classmethod
 	def on_event(cls, event_type, slack_event):
+		print('on_event')
 		#cls.handle_event(Event(event_type, slack_event))
 		event_queue.put(Event(event_type, slack_event))
 		event_queue.task_done()
