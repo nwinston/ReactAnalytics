@@ -35,9 +35,9 @@ def hears():
             'content_type': 'application/json'
         })
 
-    if Bot.verification != slack_event.get("token"):
+    if bot.Bot.verification != slack_event.get("token"):
         message = "Invalid Slack verification token: %s \npyBot has: \
-                       %s\n\n" % (slack_event["token"], Bot.verification)
+                       %s\n\n" % (slack_event["token"], bot.Bot.verification)
         # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
         # Slack's automatic retries during development.
         return make_response(message, 403, {"X-Slack-No-Retry": 1})
