@@ -24,8 +24,6 @@ TIMER_INTERVAL = 2
 authed_teams = {}
 class Bot(object):
 	event_queue = Queue()
-	message_posted_queue = Queue()
-	react_event_queue = Queue()
 	oauth = {"client_id": os.environ.get("CLIENT_ID"),
 				  "client_secret": os.environ.get("CLIENT_SECRET"),
 				  # Scopes provide and limit permissions to what our app
@@ -177,7 +175,6 @@ class Bot(object):
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
 		cls.event_queue.put(Event(event_type, slack_event))
-		print(len(cls.event_queue))
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -233,16 +230,6 @@ class Bot(object):
 			logging.getLogger(__name__).error('Failed to unpack slack event')
 
 
-	def post_to_db(self):
-		msgs = []
-		while not self.message_posted_queue.empty():
-			msgs.append(self.message_posted_queue.get())
-		db.add_messages(msgs)
-
-		reacts = []
-		while not self.react_event_queue.empty():
-			reacts.append(self.react_event_queue.get())
-		db.add_reacts(reacts)
 
 	@classmethod
 	def handle_slash_command(cls, event):
@@ -274,7 +261,6 @@ class Bot(object):
 		elif command == MOST_REACTS:
 			response = cls.most_reacts(args)
 
-		print(response)
 		cls.send_dm(user_id, response)
 
 	@classmethod
@@ -357,15 +343,15 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-
-	def event_handler_loop(self):
+	@classmethod
+	def event_handler_loop(cls):
 		while True:
-			while not self.event_queue.empty():
-				event = self.event_queue.get()
+			while not cls.event_queue.empty():
+				event = cls.event_queue.get()
 				if event.type == EventType.API_EVENT:
-					self.handle_api_event(event)
+					cls.handle_api_event(event)
 				elif event.type == EventType.SLASH_COMMAND:
-					self.handle_slash_command(event)
+					cls.handle_slash_command(event)
 
 
 
