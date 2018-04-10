@@ -64,6 +64,7 @@ def get_help_response():
 
 @app.route('/react_analytics', methods=['GET', 'POST'])
 def slash_command():
+    print('slash_command')
     slash_command = parse_slash_command(request)
     text = slash_command['text']
     response_text = 'use [/reacts help] for options'
