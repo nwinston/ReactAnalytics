@@ -10,6 +10,7 @@ import logging
 from infinitetimer import InfiniteTimer
 from util import React, Message
 import db
+from time import sleep
 
 MOST_USED_REACTS = 'most_used'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
@@ -353,10 +354,12 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
+
 			while not cls.event_queue.empty():
 				event = cls.event_queue.get()
 				cls.handle_event(event)
 				cls.event_queue.task_done()
+				sleep(10)
 
 	@classmethod
 	def handle_event(cls, event):
