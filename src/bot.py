@@ -354,6 +354,7 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
+			event_queue.join()
 			while not event_queue.empty():
 				event = event_queue.get()
 				cls.handle_event(event)
