@@ -355,18 +355,21 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
-			cls.lock.acquire()
 			while not cls.event_queue.empty():
-				print('event_queue is not empty')
-				event = cls.event_queue.get()
-				print(event)
-				if event.type == EventType.API_EVENT:
-					cls.handle_api_event(event)
-				elif event.type == EventType.SLASH_COMMAND:
-					cls.handle_slash_command(event)
-			cls.lock.release()
+				cls.lock.acquire()
+				try:
+					print('event_queue is not empty')
+					event = cls.event_queue.get()
+					cls.handle_event(event)
+				finally:
+					cls.lock.release()
 
-
+	@classmethod
+	def handle_event(cls, event):
+		if event.type == EventType.API_EVENT:
+			cls.handle_api_event(event)
+		elif event.type == EventType.SLASH_COMMAND:
+			cls.handle_slash_command(event)
 
 class Event(object):
 	def __init__(self, event_type, event_info):
