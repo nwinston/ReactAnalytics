@@ -374,8 +374,12 @@ class Bot(object):
 
 class Event(object):
 	def __init__(self, event_type, event_info):
+		print('event: ' + str(event_type))
 		self.type = event_type
 		self.event_info = event_info
+
+	def __del__(self):
+		print('del event: ' + str(self.event_type))
 
 class EventType(Enum):
 	SLASH_COMMAND = 0
