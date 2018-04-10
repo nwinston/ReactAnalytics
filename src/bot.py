@@ -297,6 +297,7 @@ class Bot(object):
 				result_str.append(users[user_id] + ': ' + count + '\n')
 			else:
 				print(user + 'not in users dictionary')
+				print(type(user))
 		return ''.join(result_str)
 
 
