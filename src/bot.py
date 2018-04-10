@@ -44,8 +44,8 @@ class Bot(object):
 
 
 		Bot.load_users()
-		event_thread = Thread(target=self.event_handler_loop)
-		event_thread.start()
+		Bot.event_thread = Thread(target=Bot.event_handler_loop)
+		Bot.event_thread.start()
 
 
 	'''
