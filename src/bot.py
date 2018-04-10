@@ -1,6 +1,6 @@
 import os
 import sys
-from multiprocessing import Queue
+from queue import Queue
 from threading import Thread, Lock
 import re
 from slackclient import SlackClient
@@ -356,7 +356,6 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
-			print('size in event_handler_loop: ' + str(cls.event_queue.qsize()))
 			while not cls.event_queue.empty():
 				cls.lock.acquire()
 				try:
