@@ -1,5 +1,5 @@
 from flask import Flask, request, make_response, render_template, abort
-import bot
+from bot import Bot
 import log
 from rq import Queue
 from rq.job import Job
