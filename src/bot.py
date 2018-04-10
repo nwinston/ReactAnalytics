@@ -60,8 +60,8 @@ class Bot(object):
 		users_response = cls.workspace_client.api_call('users.list',
 														scope=cls.oauth['scope'])
 		if users_response['ok']:
-			users = users_response['members']
-			for user in users:
+			next_users = users_response['members']
+			for user in next_users:
 				user_id = user['id']
 				user_name = user['name']
 				user_info = {'user_name' : user_name}
