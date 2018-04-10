@@ -205,6 +205,7 @@ class Bot(object):
 			return self.message_posted(slack_event)
 
 	def reaction_added(self, slack_event):
+		print('reaction_added')
 		event = slack_event['event']
 		react_name = event['reaction']
 		user_id = event['user']
@@ -222,6 +223,7 @@ class Bot(object):
 		db.remove_react(React('',channel_id, time_stamp, user_id, react_name))
 
 	def message_posted(self, slack_event):
+		print('message_posted')
 		try:
 			event = slack_event['event']
 			channel_id = event['channel']
