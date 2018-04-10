@@ -43,6 +43,7 @@ class Bot(object):
 
 	def __init__(self):
 		super(Bot, self).__init__()
+		print('bot_init')
 
 		# When we instantiate a new bot object, we can access the app
 		# credentials we set earlier in our local development environment.
