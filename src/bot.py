@@ -381,10 +381,10 @@ class Event(object):
 		self.event_info = event_info
 
 	def __del__(self):
-		print('del event: ' + str(self.event_type))
+		print('del event: ' + str(self.type))
 
 	def __str__(self):
-		print('event: ' + str(self.event_type))
+		print('event: ' + str(self.type))
 
 class EventType(Enum):
 	SLASH_COMMAND = 0
