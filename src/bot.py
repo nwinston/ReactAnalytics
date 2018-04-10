@@ -182,7 +182,7 @@ class Bot(object):
 			cls.event_queue.put(Event(event_type, slack_event))
 		finally:
 			cls.lock.release()
-		print('size in on_event: ' + cls.event_queue.qsize())
+		print('size in on_event: ' + str(cls.event_queue.qsize()))
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -356,7 +356,7 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
-			print('size in event_handler_loop: ' + cls.event_queue.qsize())
+			print('size in event_handler_loop: ' + str(cls.event_queue.qsize()))
 			while not cls.event_queue.empty():
 				cls.lock.acquire()
 				try:
