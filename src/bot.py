@@ -41,13 +41,18 @@ class Bot(object):
 	lock = Lock()
 	users = {}
 	channels = {}
+	started = False
 
 
 
 	@classmethod
 	def start(cls):
-		p = Process(target=Bot.event_handler_loop)
-		p.start()
+		print('start')
+		if not Bot.started:
+			p = Process(target=Bot.event_handler_loop)
+			p.start()
+			Bot.started = True
+
 
 
 	'''
@@ -179,6 +184,8 @@ class Bot(object):
 
 	@classmethod
 	def on_event(cls, event_type, slack_event):
+		if not Bot.started:
+			Bot.start()
 		evnt = Event(event_type, slack_event)
 		with Bot.lock:
 			cls.event_queue.put(evnt)
