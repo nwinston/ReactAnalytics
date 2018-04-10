@@ -13,7 +13,7 @@ q.enqueue_call(func=bot.Bot.start)
 
 @app.route("/install", methods=['GET'])
 def pre_install():
-    client_id = pyBot.oauth['client_id']
+    client_id = Bot.oauth['client_id']
     scope = ['channels:read', 'channels:history', 'reactions:read', 'team:read']
     return render_template('install.html', client_id=client_id, scope=scope)
 
@@ -35,9 +35,9 @@ def hears():
             'content_type': 'application/json'
         })
 
-    if pyBot.verification != slack_event.get("token"):
+    if Bot.verification != slack_event.get("token"):
         message = "Invalid Slack verification token: %s \npyBot has: \
-                       %s\n\n" % (slack_event["token"], pyBot.verification)
+                       %s\n\n" % (slack_event["token"], Bot.verification)
         # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
         # Slack's automatic retries during development.
         return make_response(message, 403, {"X-Slack-No-Retry": 1})
