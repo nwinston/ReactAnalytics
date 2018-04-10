@@ -1,6 +1,6 @@
 import os
 import sys
-from queue import Queue
+from multiprocessing import Queue
 from threading import Thread, Lock
 import re
 from slackclient import SlackClient
