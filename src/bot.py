@@ -22,9 +22,12 @@ VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS
 
 TIMER_INTERVAL = 2
 
+event_queue = Queue()
+users = {}
+channels = {}
+
 authed_teams = {}
 class Bot(object):
-	event_queue = Queue()
 	oauth = {"client_id": os.environ.get("CLIENT_ID"),
 				  "client_secret": os.environ.get("CLIENT_SECRET"),
 				  # Scopes provide and limit permissions to what our app
@@ -34,12 +37,9 @@ class Bot(object):
 	verification = os.environ.get("VERIFICATION_TOKEN")
 	bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
 	workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
-	users = {}  # user_id : {'user_name' : user_name, 'display_name' : display_name}
-	channels = {}  # channel_id : channel_name
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
 
-	lock = Lock()
 	def __init__(self):
 		super(Bot, self).__init__()
 
@@ -47,8 +47,8 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		#Bot.event_thread = Thread(target=Bot.event_handler_loop)
-		#Bot.event_thread.start()
+		Bot.event_thread = Thread(target=Bot.event_handler_loop)
+		Bot.event_thread.start()
 
 
 	'''
@@ -67,7 +67,7 @@ class Bot(object):
 				user_info = {'user_name' : user_name}
 				if 'display_name' in user['profile']:
 					user_info['display_name'] = user['profile']['display_name']
-				cls.users[user_id] = user_info
+				users[user_id] = user_info
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
@@ -78,7 +78,7 @@ class Bot(object):
 			logging.getLogger(__name__).error(msg='Failed to get channel list: ' + list_response['error'])
 			return
 		for channel in list_response['channels']:
-			self.channels[channel['id']] = channel['name']
+			channels[channel['id']] = channel['name']
 
 	def load_message_history(self):
 		team_info_response = self.workspace_client.api_call('team.info',
@@ -87,11 +87,11 @@ class Bot(object):
 			team_id = team_info_response['team']['id']
 		else:
 			return []
-		if not self.channels:
+		if not channels:
 			self.load_channels()
 		messages = []
 		reacts = []
-		for channel in self.channels:
+		for channel in channels:
 			channel_msgs = self.get_channel_message_history(channel)
 			for msg in channel_msgs:
 				ts = msg['ts']
@@ -178,7 +178,8 @@ class Bot(object):
 
 	@classmethod
 	def on_event(cls, event_type, slack_event):
-		cls.handle_event(Event(event_type, slack_event))
+		event_queue.put(Event(event_type, slack_event))
+		event_queue.task_done()
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -352,11 +353,10 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
-
-			while not cls.event_queue.empty():
-				event = cls.event_queue.get()
+			while not event_queue.empty():
+				event = event_queue.get()
 				cls.handle_event(event)
-				cls.event_queue.task_done()
+				event_queue.task_done()
 				sleep(10)
 
 	@classmethod
