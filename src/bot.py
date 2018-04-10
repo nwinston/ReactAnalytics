@@ -47,8 +47,8 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		Bot.event_thread = Process(target=Bot.event_handler_loop, args=(event_queue,))
-		Bot.event_thread.start()
+		#Bot.event_thread = Process(target=Bot.event_handler_loop, args=(event_queue,))
+		#Bot.event_thread.start()
 
 
 	'''
@@ -179,8 +179,8 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
-		#cls.handle_event(Event(event_type, slack_event))
-		event_queue.put(Event(event_type, slack_event))
+		cls.handle_event(Event(event_type, slack_event))
+		#event_queue.put(Event(event_type, slack_event))
 
 	@classmethod
 	def handle_api_event(cls, event):
