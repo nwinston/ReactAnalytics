@@ -45,10 +45,10 @@ class Bot(object):
 
 	def __new__(cls, *args, **kwargs):
 		print('new')
-        if not cls._instance:
-            cls._instance = super(Bot, cls).__new__(
-                                cls, *args, **kwargs)
-        return cls._instance
+		if not cls._instance:
+			cls._instance = super(Bot, cls).__new__(
+									cls, *args, **kwargs)
+		return cls._instance
 
 
 	@classmethod
