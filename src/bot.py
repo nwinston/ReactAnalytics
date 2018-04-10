@@ -180,7 +180,7 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		evnt = Event(event_type, slack_event)
-		with Bot.lock():
+		with Bot.lock:
 			cls.event_queue.put(evnt)
 		#cls.handle_event(Event(event_type, slack_event))
 
