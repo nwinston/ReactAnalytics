@@ -1,7 +1,7 @@
 import os
 import sys
 from multiprocessing import Queue
-from multiprocessing import Process, Lock
+from threading import Thread, Lock
 import re
 from slackclient import SlackClient
 import analytics
@@ -46,8 +46,8 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		Bot.event_thread = Process(target=Bot.event_handler_loop)
-		Bot.event_thread.run()
+		Bot.event_thread = Thread(target=Bot.event_handler_loop)
+		Bot.event_thread.start()
 
 
 	'''
