@@ -1,8 +1,7 @@
 import os
 import sys
 from multiprocessing import Queue
-from threading import Thread
-from threading import Lock
+from multiprocessing import Process, Lock
 import re
 from slackclient import SlackClient
 import analytics
@@ -47,7 +46,7 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		Bot.event_thread = Thread(target=Bot.event_handler_loop)
+		Bot.event_thread = Process(target=Bot.event_handler_loop)
 		Bot.event_thread.start()
 
 
@@ -180,9 +179,10 @@ class Bot(object):
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
 		cls.lock.acquire()
-		cls.event_queue.put(Event(event_type, slack_event))
-		cls.lock.release()
-		print(cls.event_queue.qsize())
+		try:
+			cls.event_queue.put(Event(event_type, slack_event))
+		finally:
+			cls.lock.release()
 
 	@classmethod
 	def handle_api_event(cls, event):
