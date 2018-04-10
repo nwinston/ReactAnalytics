@@ -194,8 +194,13 @@ def get_reacts_by_user(user_id):
 def get_reacts_per_user():
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     c = conn.cursor()
-
-    c.execute('SELECT UserID, ReactName, sum(Count) FROM UserReacts GROUP BY ReactName')
+    '''
+    subquery = """SELECT UserID, sum(Count) AS sum
+                  From UserReacts
+                  GROUP BY UserID
+                  """
+    '''
+    c.execute('SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID')
     row = c.fetchone()
     while row:
         print(row)
