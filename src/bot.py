@@ -69,6 +69,7 @@ class Bot(object):
 				if 'display_name' in user['profile']:
 					user_info['display_name'] = user['profile']['display_name']
 				users[user_id] = user_info
+				print(users)
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
