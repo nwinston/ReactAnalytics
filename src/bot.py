@@ -24,51 +24,40 @@ TIMER_INTERVAL = 2
 authed_teams = {}
 class Bot(object):
 	event_queue = Queue()
+	message_posted_queue = Queue()
+	react_event_queue = Queue()
+	oauth = {"client_id": os.environ.get("CLIENT_ID"),
+				  "client_secret": os.environ.get("CLIENT_SECRET"),
+				  # Scopes provide and limit permissions to what our app
+				  # can access. It's important to use the most restricted
+				  # scope that your app will need.
+				  "scope": 'bot'}
+	verification = os.environ.get("VERIFICATION_TOKEN")
+	bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
+	workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
+	users = {}  # user_id : {'user_name' : user_name, 'display_name' : display_name}
+	channels = {}  # channel_id : channel_name
 	def __init__(self):
 		super(Bot, self).__init__()
 		self.name = "reactanalyticsbot"
 		self.emoji = ":robot_face:"
 		# When we instantiate a new bot object, we can access the app
 		# credentials we set earlier in our local development environment.
-		self.oauth = {"client_id": os.environ.get("CLIENT_ID"),
-					  "client_secret": os.environ.get("CLIENT_SECRET"),
-					  # Scopes provide and limit permissions to what our app
-					  # can access. It's important to use the most restricted
-					  # scope that your app will need.
-					  "scope": 'bot'}
-		self.verification = os.environ.get("VERIFICATION_TOKEN")
-		self.bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
-		self.workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
-		self.users = {} # user_id : {'user_name' : user_name, 'display_name' : display_name}
-		self.channels = {} #channel_id : channel_name
 
-		self.message_posted_queue = Queue()
-		self.react_event_queue = Queue()
-		self.load_users()
+
+		Bot.load_users()
 		event_thread = Thread(target=self.event_handler_loop)
 		event_thread.start()
-		#t = Thread(self._on_init())
-		#t.start()
-		print('start')
-
-	def _on_init(self):
-		msgs, reacts = self.load_message_history()
-
-		# dont add messages already in db
-		msgs = [msg for msg in msgs if not db.msg_exists(msg.msg_id)]
-		reacts = [react for react in reacts if not db.msg_exists(react.msg_id)]
-		db.add_messages(msgs)
-		db.add_reacts(reacts)
 
 
 	'''
 	API INTERACTIONS
 	'''
 
-
-	def load_users(self):
-		users_response = self.workspace_client.api_call('users.list',
-														scope=self.oauth['scope'])
+	@classmethod
+	def load_users(cls):
+		users_response = cls.workspace_client.api_call('users.list',
+														scope=cls.oauth['scope'])
 		if users_response['ok']:
 			users = users_response['members']
 			for user in users:
@@ -77,7 +66,7 @@ class Bot(object):
 				user_info = {'user_name' : user_name}
 				if 'display_name' in user['profile']:
 					user_info['display_name'] = user['profile']['display_name']
-				self.users[user_id] = user_info
+				cls.users[user_id] = user_info
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
@@ -189,7 +178,8 @@ class Bot(object):
 		print('on_event')
 		cls.event_queue.put(Event(event_type, slack_event))
 
-	def handle_api_event(self, event):
+	@classmethod
+	def handle_api_event(cls, event):
 		print('handle_api_event')
 		slack_event = event.event_info
 		event_type = slack_event['event']['type']
@@ -197,15 +187,16 @@ class Bot(object):
 
 
 		if event_type == 'reaction_added':
-			return self.reaction_added(slack_event)
+			return cls.reaction_added(slack_event)
 		elif event_type == 'reaction_removed':
 			print('removed')
-			return self.reaction_removed(slack_event)
+			return cls.reaction_removed(slack_event)
 		elif event_type == 'message':
 			print('onMessage')
-			return self.message_posted(slack_event)
+			return cls.message_posted(slack_event)
 
-	def reaction_added(self, slack_event):
+	@staticmethod
+	def reaction_added(slack_event):
 		print('reaction_added')
 		event = slack_event['event']
 		react_name = event['reaction']
@@ -214,7 +205,8 @@ class Bot(object):
 		time_stamp = event['item']['ts']
 		db.add_react(React('', channel_id, time_stamp, user_id, react_name))
 
-	def reaction_removed(self, slack_event):
+	@staticmethod
+	def reaction_removed(slack_event):
 		event = slack_event['event']
 		react_name = event['reaction']
 		user_id = event['user']
@@ -223,7 +215,8 @@ class Bot(object):
 
 		db.remove_react(React('',channel_id, time_stamp, user_id, react_name))
 
-	def message_posted(self, slack_event):
+	@staticmethod
+	def message_posted(slack_event):
 		print('message_posted')
 		try:
 			event = slack_event['event']
@@ -250,12 +243,12 @@ class Bot(object):
 			reacts.append(self.react_event_queue.get())
 		db.add_reacts(reacts)
 
-
-	def handle_slash_command(self, event):
+	@classmethod
+	def handle_slash_command(cls, event):
 		event = event.event_info
 		token = event['token']
 
-		if not self.auth_token(token):
+		if not cls.auth_token(token):
 			logging.getLogger(__name__).warning('Not authed')
 			return
 
@@ -270,21 +263,21 @@ class Bot(object):
 			args = ' '.join(text[1:])
 
 		if command == MOST_USED_REACTS:
-			response = self.most_used_reacts(args)
+			response = cls.most_used_reacts(args)
 		elif command == MOST_REACTED_TO_MESSAGES:
-			response = self.most_reacted_to_message(args)
+			response = cls.most_reacted_to_message(args)
 		elif command == MOST_UNIQUE_REACTS_ON_POST:
-			response = self.most_unique_reacts_on_post(args)
+			response = cls.most_unique_reacts_on_post(args)
 		elif command == REACT_BUZZWORDS:
-			response = self.react_buzzwords(args)
+			response = cls.react_buzzwords(args)
 		elif command == MOST_REACTS:
-			response = self.most_reacts(args)
+			response = cls.most_reacts(args)
 
 		print(response)
-		self.send_dm(user_id, response)
+		cls.send_dm(user_id, response)
 
-
-	def most_reacted_to_message(self, text):
+	@classmethod
+	def most_reacted_to_message(cls, text):
 		re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
 		result_str = []
 		if not re_object:
@@ -292,7 +285,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
-			result_str.append('Most reacted to posts for ' + self.users[user_id] + '\n')
+			result_str.append('Most reacted to posts for ' + cls.users[user_id] + '\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg in msgs:
@@ -300,11 +293,12 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	def most_reacts(self, args):
+	@classmethod
+	def most_reacts(cls, args):
 		users = analytics.users_with_most_reacts()
 
-
-	def most_used_reacts(self, text):
+	@classmethod
+	def most_used_reacts(cls, text):
 		user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
 		if not user_id:
 			result = analytics.most_used_reacts()
@@ -319,7 +313,8 @@ class Bot(object):
 			result_str.append(' : ' + str(r[1]) + '\n')
 		return ''.join(result_str)
 
-	def most_unique_reacts_on_post(self, text):
+	@classmethod
+	def most_unique_reacts_on_post(cls, text):
 		channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
 		result_str = []
 		if not channel_id:
@@ -334,10 +329,12 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	def reacts_to_words(self, text):
-		return ' '.join(analytics.reacts_to_words(self.users, self.channels))
+	@classmethod
+	def reacts_to_words(cls, text):
+		return ' '.join(analytics.reacts_to_words(cls.users, cls.channels))
 
-	def react_buzzwords(self, text):
+	@classmethod
+	def react_buzzwords(cls, text):
 
 		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
 		reacts = [r for r in reacts if r.strip(' ')]
@@ -346,7 +343,7 @@ class Bot(object):
 		try:
 			for r in reacts:
 				result_str.append(':'+r + ':: ')
-				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, self.users, self.channels, 20)]
+				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, cls.users, cls.channels, 20)]
 
 				if react_buzzwords:
 					result_str.append(', '.join(react_buzzwords) + '\n')
