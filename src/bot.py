@@ -289,6 +289,19 @@ class Bot(object):
 	@classmethod
 	def most_reacts(cls, args):
 		users = analytics.users_with_most_reacts()
+		user_re = re.compile('(?<=\@)(.*?)(?=\|)')
+
+		result_str = ['Users that react the most']
+		for user, count in users.items():
+			user_find = user_re.search(user)
+			if not user_find:
+				print('Unable to get user from ' + user)
+				continue
+			user_id = user_find.group(0)
+			if user_id in users:
+				result_str.append(users[user_id] + ': ' + count + '\n')
+		return ''.join(result_str)
+
 
 	@classmethod
 	def most_used_reacts(cls, text):

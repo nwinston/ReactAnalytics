@@ -201,10 +201,12 @@ def get_reacts_per_user():
                   """
     '''
     c.execute('SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID')
+    users = {}
     row = c.fetchone()
     while row:
-        print(row)
+        users[row[0]] = row[1]
         row = c.fetchone()
+    return users
 
 
 def get_reacts_on_message(msg_id):
