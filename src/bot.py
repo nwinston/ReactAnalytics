@@ -184,12 +184,8 @@ class Bot(object):
 
 	@classmethod
 	def on_event(cls, event_type, slack_event):
-		if not Bot.started:
-			Bot.start()
 		evnt = Event(event_type, slack_event)
-		with Bot.lock:
-			cls.event_queue.put(evnt)
-		#cls.handle_event(Event(event_type, slack_event))
+		cls.handle_event(evnt)
 
 	@classmethod
 	def handle_api_event(cls, event):
