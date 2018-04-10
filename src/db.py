@@ -33,6 +33,7 @@ def add_messages(msgs):
 
 
 def add_message(msg, conn=None):
+    print('add_message')
     log.log_info('add_message')
     close = (conn is None)
 
@@ -60,6 +61,7 @@ def add_reacts(reacts):
     conn.close()
 
 def add_react(react):
+    print('add_react')
     log.log_info('add_react')
     conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
