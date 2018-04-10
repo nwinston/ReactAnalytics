@@ -2,6 +2,7 @@ import os
 import sys
 from multiprocessing import Queue
 from threading import Thread
+from threading import Lock
 import re
 from slackclient import SlackClient
 import analytics
@@ -37,6 +38,8 @@ class Bot(object):
 	channels = {}  # channel_id : channel_name
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
+
+	lock = Lock()
 	def __init__(self):
 		super(Bot, self).__init__()
 
@@ -176,8 +179,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
-		#cls.event_queue.put(Event(event_type, slack_event))
-		cls.handle_api_event(Event(event_type, slack_event))
+		cls.lock.acquire()
+		cls.event_queue.put(Event(event_type, slack_event))
+		cls.lock.release()
 		print(cls.event_queue.qsize())
 
 	@classmethod
@@ -351,6 +355,7 @@ class Bot(object):
 	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
+			cls.lock.acquire()
 			while not cls.event_queue.empty():
 				print('event_queue is not empty')
 				event = cls.event_queue.get()
@@ -359,6 +364,7 @@ class Bot(object):
 					cls.handle_api_event(event)
 				elif event.type == EventType.SLASH_COMMAND:
 					cls.handle_slash_command(event)
+			cls.lock.release()
 
 
 
