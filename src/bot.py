@@ -35,13 +35,13 @@ class Bot(object):
 	workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
 	users = {}  # user_id : {'user_name' : user_name, 'display_name' : display_name}
 	channels = {}  # channel_id : channel_name
+	name = "reactanalyticsbot"
+	emoji = ":robot_face:"
 	def __init__(self):
 		super(Bot, self).__init__()
-		self.name = "reactanalyticsbot"
-		self.emoji = ":robot_face:"
+
 		# When we instantiate a new bot object, we can access the app
 		# credentials we set earlier in our local development environment.
-
 
 		Bot.load_users()
 		Bot.event_thread = Thread(target=Bot.event_handler_loop)
@@ -177,6 +177,7 @@ class Bot(object):
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
 		cls.event_queue.put(Event(event_type, slack_event))
+		print(cls.event_queue.qsize())
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -349,7 +350,6 @@ class Bot(object):
 	def event_handler_loop(cls):
 		while True:
 			while not cls.event_queue.empty():
-				print('Not empty')
 				event = cls.event_queue.get()
 				print(event)
 				if event.type == EventType.API_EVENT:
