@@ -375,10 +375,9 @@ class Event(object):
 		self.event_info = event_info
 		Event.inc()
 
-	@classmethod
-	def inc(cls):
-		print(cls.count)
-		cls.count += 1
+	@staticmethod
+	def inc():
+		Event.count += 1
 
 	def __del__(self):
 		print('del event: ' + str(self.type))
