@@ -373,7 +373,8 @@ class Event(object):
 		print('event: ' + str(event_type))
 		self.type = event_type
 		self.event_info = event_info
-		self.count += 1
+		print(self.count)
+		self.count = self.count + 1
 		print(self.count)
 
 
