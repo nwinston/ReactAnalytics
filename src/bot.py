@@ -355,7 +355,7 @@ class Bot(object):
 			while not cls.event_queue.empty():
 				event = cls.event_queue.get()
 				cls.handle_event(event)
-			cls.event_queue.task_done()
+				cls.event_queue.task_done()
 
 	@classmethod
 	def handle_event(cls, event):
