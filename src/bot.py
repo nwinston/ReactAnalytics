@@ -22,8 +22,7 @@ VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS
 
 TIMER_INTERVAL = 2
 
-users = {}
-channels = {}
+
 
 authed_teams = {}
 class Bot(object):
@@ -40,17 +39,15 @@ class Bot(object):
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
 	lock = Lock()
+	users = {}
+	channels = {}
 
-	def __init__(self):
-		super(Bot, self).__init__()
-		print('bot_init')
 
-		# When we instantiate a new bot object, we can access the app
-		# credentials we set earlier in our local development environment.
 
-		Bot.load_users()
-		#Bot.event_thread = Process(target=Bot.event_handler_loop)
-		#Bot.event_thread.start()
+	@classmethod
+	def start(cls):
+		p = Process(target=Bot.event_handler_loop)
+		p.start()
 
 
 	'''
@@ -69,7 +66,9 @@ class Bot(object):
 				user_info = {'user_name' : user_name}
 				if 'display_name' in user['profile']:
 					user_info['display_name'] = user['profile']['display_name']
-				users[user_id] = user_info
+				else:
+					user_info['display_name'] = user_name
+				Bot.users[user_id] = user_info
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
@@ -180,7 +179,10 @@ class Bot(object):
 
 	@classmethod
 	def on_event(cls, event_type, slack_event):
-		cls.handle_event(Event(event_type, slack_event))
+		evnt = Event(event_type, slack_event)
+		with Bot.lock():
+			cls.event_queue.put(evnt)
+		#cls.handle_event(Event(event_type, slack_event))
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -297,8 +299,8 @@ class Bot(object):
 
 		result_str = ['Users that react the most']
 		for user, count in user_reacts.items():
-			if user in users:
-				result_str.append(users[user] + ': ' + count + '\n')
+			if user in Bot.users:
+				result_str.append(Bot.users[user]['display_name'] + ': ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
 				print(type(user))
