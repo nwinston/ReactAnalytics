@@ -36,7 +36,7 @@ def favorite_reacts_of_user(user, count=5):
 def get_top_by_value(data, count=5):
 	sorted_data = sorted(data.items(), key=operator.itemgetter(1))
 	spliced = sorted_data[:count]
-	return spliced[::-1]
+	return {item[0] : item[1] for item in spliced}
 
 # Given a list of message ids, get all the unique words
 # in those messages. Parses escaped channels/users
@@ -91,7 +91,6 @@ def reacts_to_words(users, channels, count=5):
 
 	for msg_id in db.get_message_ids():
 		msg_text = db.get_message_text(msg_id)
-		print(msg_id)
 		split_msg = set(msg_text.split(' '))
 		reacts_on_msg = db.get_reacts_on_message(msg_id)
 		if not reacts_on_msg:
