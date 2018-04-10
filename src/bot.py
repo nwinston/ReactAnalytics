@@ -47,7 +47,6 @@ class Bot(object):
 
 		Bot.load_users()
 		Bot.event_thread = Process(target=Bot.event_handler_loop)
-
 		Bot.event_thread.run()
 
 
@@ -242,6 +241,7 @@ class Bot(object):
 
 	@classmethod
 	def handle_slash_command(cls, event):
+		print('handle_slash_command')
 		event = event.event_info
 		token = event['token']
 
