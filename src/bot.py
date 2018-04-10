@@ -379,7 +379,6 @@ class Event(object):
 
 	def __del__(self):
 		print('del event: ' + str(self.type))
-		Event.count -= 1
 
 	def __str__(self):
 		print('event: ' + str(self.type))
