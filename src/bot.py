@@ -135,35 +135,37 @@ class Bot(object):
 		else:
 			return False
 
-	def send_dm(self, user_id, message):
-		new_dm = self.bot_client.api_call('im.open',
+	@classmethod
+	def send_dm(cls, user_id, message):
+		new_dm = cls.bot_client.api_call('im.open',
 										  user=user_id)
 
 		if not new_dm['ok']:
 			return False
 
 		channel_id = new_dm['channel']['id']
-		post_msg = self.bot_client.api_call('chat.postMessage',
+		post_msg = cls.bot_client.api_call('chat.postMessage',
 											channel=channel_id,
-											username=self.name,
+											username=cls.name,
 											text=message)
 		return post_msg['ok']
 
-	def auth(self, code):
-		response = self.bot_client.api_call('oauth.access',
-											client_id=self.oauth['client_id'],
-											client_secret=self.oauth['client_secret'],
+	@classmethod
+	def auth(cls, code):
+		response = cls.bot_client.api_call('oauth.access',
+											client_id=cls.oauth['client_id'],
+											client_secret=cls.oauth['client_secret'],
 											code=code)
 		if response['ok']:
 			team_id = response['team_id']
 			bot_token = response['bot']['bot_access_token']
-			self.bot_client = SlackClient(bot_token)
+			cls.bot_client = SlackClient(bot_token)
 
 
 
-
-	def auth_token(self, token):
-		auth_response = self.workspace_client.api_call('auth.test',
+	@classmethod
+	def auth_token(cls, token):
+		auth_response = cls.workspace_client.api_call('auth.test',
 												 token=token)
 		return auth_response['ok']
 
