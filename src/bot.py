@@ -288,6 +288,7 @@ class Bot(object):
 
 	@classmethod
 	def most_reacts(cls, args):
+		print(users)
 		user_reacts = analytics.users_with_most_reacts()
 		user_re = re.compile('(?<=\@)(.*?)(?=\|)')
 
