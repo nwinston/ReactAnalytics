@@ -43,11 +43,16 @@ class Bot(object):
 	channels = {}
 	started = False
 
+	def __new__(cls, *args, **kwargs):
+		print('new')
+        if not cls._instance:
+            cls._instance = super(Bot, cls).__new__(
+                                cls, *args, **kwargs)
+        return cls._instance
 
 
 	@classmethod
 	def start(cls):
-		print('start')
 		if not Bot.started:
 			p = Process(target=Bot.event_handler_loop)
 			p.start()
@@ -185,7 +190,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		evnt = Event(event_type, slack_event)
-		cls.handle_event(evnt)
+		with cls.lock:
+			Bot.event_queue.put(evnt)
+		#cls.handle_event(evnt)
 
 	@classmethod
 	def handle_api_event(cls, event):
