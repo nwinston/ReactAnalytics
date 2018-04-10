@@ -179,7 +179,9 @@ class Bot(object):
 	def on_event(cls, event_type, slack_event):
 		cls.lock.acquire()
 		try:
-			cls.event_queue.put(Event(event_type, slack_event))
+			evnt = Event(event_type, slack_event)
+			print(str(evnt))
+			cls.event_queue.put(evnt)
 		finally:
 			cls.lock.release()
 		print('size in on_event: ' + str(cls.event_queue.qsize()))
@@ -380,6 +382,9 @@ class Event(object):
 
 	def __del__(self):
 		print('del event: ' + str(self.event_type))
+
+	def __str__(self):
+		print('event: ' + str(self.event_type))
 
 class EventType(Enum):
 	SLASH_COMMAND = 0
