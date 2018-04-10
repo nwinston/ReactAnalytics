@@ -246,7 +246,9 @@ class Bot(object):
 			logging.getLogger(__name__).warning('Not authed')
 			return
 
-
+		if not users:
+			Bot.load_users()
+			print(users)
 
 		text = event['text'].split(' ')
 		user_id = event['user_id']
