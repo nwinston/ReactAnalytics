@@ -22,7 +22,6 @@ VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS
 
 TIMER_INTERVAL = 2
 
-event_queue = Queue()
 users = {}
 channels = {}
 
@@ -37,8 +36,10 @@ class Bot(object):
 	verification = os.environ.get("VERIFICATION_TOKEN")
 	bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
 	workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
+	event_queue = Queue()
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
+	lock = Lock()
 
 	def __init__(self):
 		super(Bot, self).__init__()
@@ -47,8 +48,8 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		#Bot.event_thread = Process(target=Bot.event_handler_loop, args=(event_queue,))
-		#Bot.event_thread.start()
+		Bot.event_thread = Process(target=Bot.event_handler_loop)
+		Bot.event_thread.start()
 
 
 	'''
@@ -179,8 +180,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
-		cls.handle_event(Event(event_type, slack_event))
-		#event_queue.put(Event(event_type, slack_event))
+		#cls.handle_event(Event(event_type, slack_event))
+		with lock:
+			Bot.event_queue.put(Event(event_type, slack_event))
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -351,11 +353,12 @@ class Bot(object):
 		return ''.join(result_str)
 
 	@classmethod
-	def event_handler_loop(cls, q):
+	def event_handler_loop(cls):
 		print('event_handler_loop')
 		while True:
-			event = q.get()
-			cls.handle_event(event)
+			with lock:
+				event = Bot.event_queue.get()
+				cls.handle_event(event)
 			sleep(1)
 
 	@classmethod
