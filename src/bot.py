@@ -47,8 +47,8 @@ class Bot(object):
 		# credentials we set earlier in our local development environment.
 
 		Bot.load_users()
-		Bot.event_thread = Thread(target=Bot.event_handler_loop)
-		Bot.event_thread.start()
+		#Bot.event_thread = Thread(target=Bot.event_handler_loop)
+		#Bot.event_thread.start()
 
 
 	'''
@@ -179,9 +179,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		print('on_event')
-		#cls.handle_event(Event(event_type, slack_event))
-		event_queue.put(Event(event_type, slack_event))
-		event_queue.task_done()
+		cls.handle_event(Event(event_type, slack_event))
+		#event_queue.put(Event(event_type, slack_event))
+		#event_queue.task_done()
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -280,7 +280,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
-			result_str.append('Most reacted to posts for ' + cls.users[user_id] + '\n')
+			result_str.append('Most reacted to posts for ' + users[user_id] + '\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg in msgs:
@@ -326,7 +326,7 @@ class Bot(object):
 
 	@classmethod
 	def reacts_to_words(cls, text):
-		return ' '.join(analytics.reacts_to_words(cls.users, cls.channels))
+		return ' '.join(analytics.reacts_to_words(users, channels))
 
 	@classmethod
 	def react_buzzwords(cls, text):
@@ -338,7 +338,7 @@ class Bot(object):
 		try:
 			for r in reacts:
 				result_str.append(':'+r + ':: ')
-				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, cls.users, cls.channels, 20)]
+				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, users, channels, 20)]
 
 				if react_buzzwords:
 					result_str.append(', '.join(react_buzzwords) + '\n')
