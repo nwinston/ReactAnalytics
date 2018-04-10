@@ -346,6 +346,7 @@ class Bot(object):
 	@classmethod
 	def event_handler_loop(cls):
 		while True:
+			print('loop')
 			while not cls.event_queue.empty():
 				event = cls.event_queue.get()
 				if event.type == EventType.API_EVENT:
