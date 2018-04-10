@@ -7,7 +7,7 @@ from worker import conn
 
 app = Flask(__name__)
 q = Queue(connection=conn)
-q.enqueue_call(target=Bot.start)
+q.enqueue_call(func=Bot.start)
 
 
 
