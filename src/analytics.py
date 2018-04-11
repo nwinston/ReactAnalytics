@@ -5,7 +5,7 @@ import re
 import db
 import os
 from nltk.util import ngrams
-from nltk import word_tokenize, sent_tokenize
+from nltk import word_tokenize, sent_tokenize, TweetTokenizer #doesn't split contractions
 import string
 from contractions import expand_contractions
 
@@ -152,13 +152,13 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 def get_common_phrases():
 	phrase_counter = Counter()
+	tknzer = TweetTokenizer()
 	texts = db.get_all_message_texts()
 	for msg in texts:
 		if 'joined the channel' in msg or 'left the channel' in msg or 'uploaded a file' in msg:
 			continue
-		msg = expand_contractions(msg)
 		for sent in sent_tokenize(msg):
-			words = word_tokenize(sent)
+			words = tknzer.tokenize(sent)
 			for phrase in ngrams(words, 3):
 				if all(word not in string.punctuation for word in phrase):
 					phrase_counter[phrase] += 1
