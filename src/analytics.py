@@ -33,8 +33,8 @@ def favorite_reacts_of_user(user, count=5):
 	user_reacts = db.get_reacts_by_user(user)
 	return _most_used_reacts(user_reacts, count)
 
-def get_top_by_value(data, count=5):
-	sorted_data = sorted(data.items(), key=operator.itemgetter(1))[::-1]
+def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
+	sorted_data = sorted(data.items(), key=sort_key)[::-1]
 	spliced = sorted_data[:count]
 	return {item[0] : item[1] for item in spliced}
 
@@ -156,10 +156,10 @@ def get_common_phrases(msg_db):
 	return finder.nbest(bigram_measures.pmi, 10)
 
 def most_unique_reacts_on_a_post(count=5):
-	react_count = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
-	react_count = {msg_id : len(react_count[msg_id]) for msg_id in react_count}
+	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
+	reacts = {msg_id : react_count[msg_id] for msg_id in react_count}
 	print(react_count)
-	return _most_used_reacts(react_count, count)
+	return _most_used_reacts(react_count, count, lambda x: len(x))
 
 def users_with_most_reacts(count=5):
 	most_reacts = db.get_reacts_per_user()
