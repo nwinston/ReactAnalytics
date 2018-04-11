@@ -212,6 +212,10 @@ class Bot(object):
 			print('onMessage')
 			return cls.message_posted(slack_event)
 
+	@classmethod
+	def message_removed(slack_event):
+		pass
+
 	@staticmethod
 	def reaction_added(slack_event):
 		print('reaction_added')
