@@ -370,6 +370,9 @@ class Bot(object):
 	@classmethod
 	def react_buzzwords(cls, text):
 
+		if not text.strip():
+			return 'specify at least one react'
+
 		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
 		reacts = [r for r in reacts if r.strip(' ')]
 		result_str = []

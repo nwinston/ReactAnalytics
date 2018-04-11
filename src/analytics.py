@@ -23,7 +23,6 @@ def most_used_reacts(count=5):
 	return _most_used_reacts(reacts, count)
 
 def _most_used_reacts(reacts, count):
-	print(reacts)
 	sorted_reacts = sorted(reacts.items(), key=operator.itemgetter(1))[::-1]
 	spliced = sorted_reacts[:count]
 	return spliced[::-1]
@@ -81,7 +80,6 @@ def react_buzzword(react_name, users, channels, count=5):
 	msgs = db.get_messages_with_react(react_name, False)
 	words = get_unique_words(msgs, users, channels)
 	ret = get_top_by_value(words, count)
-	print(ret)
 	return ret
 
 def reacts_to_words(users, channels, count=5):
