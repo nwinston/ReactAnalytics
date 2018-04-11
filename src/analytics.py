@@ -1,11 +1,11 @@
 from functools import reduce
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 import operator
 import re
 import db
 import os
 import nltk
-from nltk.collocations import *
+import string
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
@@ -147,15 +147,15 @@ def most_reacted_to_posts(user_id=None, count=5):
 	return _most_used_reacts(react_count, count)
 
 def get_common_phrases():
+	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
-	print(len(texts))
-	bigram_measures = nltk.collocations.BigramAssocMeasures()
-	trigram_measures = nltk.collocations.TrigramAssocMeasures()
-
-	finder = BigramCollocationFinder.from_words(texts)
-	finder.apply_freq_filter(3)
-	best = finder.nbest(bigram_measures.pmi, 10)
-	print(str(best))
+	for msg in texts:
+		for sent in nltk.send_tokenize(msg):
+			words = nltk.word_tokenize(sent)
+			for phrase in nltk.util.ngrams(words, 4):
+				if all(word not in string.punctuation for word in phrase):
+					phrase_counter[phrase] += 1
+	return get_top_by_value(phrase_counter)
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}

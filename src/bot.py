@@ -289,7 +289,11 @@ class Bot(object):
 
 	@classmethod
 	def common_phrases(cls):
-		analytics.get_common_phrases()
+		phrases = analytics.get_common_phrases()
+		result_str = ['Common Phrases:\n']
+		for p in phrases.keys():
+			result_str.append(str(p) + '\n')
+		return ''.join(result_str)
 
 	@classmethod
 	def most_reacted_to_message(cls, text):
