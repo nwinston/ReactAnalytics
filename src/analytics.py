@@ -12,7 +12,7 @@ stop_words_file = up_dir + '/stopwords.txt'
 stop_words = set(line.strip() for line in open(stop_words_file))
 stop_words.add('')
 
-nltk.download()
+#nltk.download()
 
 def most_used_reacts(count=5):
 	reacts = db.get_react_counts()
