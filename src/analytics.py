@@ -4,7 +4,9 @@ import operator
 import re
 import db
 import os
-import nltk
+from nltk.corpus import stop_words
+from nltk.util import ngrams
+from ntlk import word_tokenize, sent_tokenize
 import string
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
@@ -152,9 +154,9 @@ def get_common_phrases():
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
-		for sent in nltk.sent_tokenize(msg):
-			words = nltk.word_tokenize(sent)
-			for phrase in nltk.util.ngrams(words, 4):
+		for sent in sent_tokenize(msg):
+			words = word_tokenize(sent)
+			for phrase in ngrams(words, 4):
 				if all(word not in string.punctuation for word in phrase):
 					phrase_counter[phrase] += 1
 	return get_top_by_value(phrase_counter)
