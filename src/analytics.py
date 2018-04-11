@@ -150,7 +150,7 @@ def get_common_phrases():
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
-		for sent in nltk.send_tokenize(msg):
+		for sent in nltk.sent_tokenize(msg):
 			words = nltk.word_tokenize(sent)
 			for phrase in nltk.util.ngrams(words, 4):
 				if all(word not in string.punctuation for word in phrase):
