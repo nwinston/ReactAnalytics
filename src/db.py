@@ -5,8 +5,13 @@ import log
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-def remove_message(msg_id):
+def remove_message(msg):
     query = 'DELETE FROM MESSAGES WHERE MessageID = %s'
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    c = conn.cursor()
+    c.execute(query, (msg.msg_id))
+    conn.commit()
+    conn.close()
 
 # msgs = (msg_id, team_id, user_id, text)
 def add_messages(msgs):

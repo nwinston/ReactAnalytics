@@ -8,7 +8,7 @@ import analytics
 from enum import Enum
 import logging
 from infinitetimer import InfiniteTimer
-from util import React, Message
+from util import React, Message, msg_id_string
 import db
 from time import sleep
 
@@ -84,63 +84,6 @@ class Bot(object):
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
 
-	def load_channels(self):
-		list_response = self.workspace_client.api_call('channels.list')
-		if not list_response['ok']:
-			logging.getLogger(__name__).error(msg='Failed to get channel list: ' + list_response['error'])
-			return
-		for channel in list_response['channels']:
-			channels[channel['id']] = channel['name']
-
-	def load_message_history(self):
-		team_info_response = self.workspace_client.api_call('team.info',
-															scope=self.oauth['scope'])
-		if team_info_response['ok']:
-			team_id = team_info_response['team']['id']
-		else:
-			return []
-		if not channels:
-			self.load_channels()
-		messages = []
-		reacts = []
-		for channel in channels:
-			channel_msgs = self.get_channel_message_history(channel)
-			for msg in channel_msgs:
-				ts = msg['ts']
-				if 'user' not in msg:
-					continue
-				msg_user = msg['user']
-				msg_text = msg['text']
-				if 'reactions' in msg:
-					reacts_on_msg = msg['reactions']
-					for r in reacts_on_msg:
-						name = r['name']
-						reacts.extend(React(team_id, channel, ts, react_user, name) for react_user in r['users'])
-
-				messages.append(Message(team_id, channel, ts, msg_user, msg_text))
-		return messages, reacts
-
-	def get_channel_message_history(self, channel_id):
-		messages = []
-		has_more = True
-		latest = 0
-		while has_more:
-			try:
-				response = self.workspace_client.api_call('channels.history',
-													  channel=channel_id,
-													  latest = latest)
-			except:
-				return messages
-			if not response['ok']:
-				logging.getLogger(__name__).error(
-					msg='Failed to get channel history for ' + channel_id + ': ' + response['error'])
-				return []
-			messages.extend(response['messages'])
-			if messages:
-				latest = messages[-1]['ts']
-			has_more = response['has_more']
-		return messages
-
 	# Given a channel ID checks if it's a direct message
 	def is_dm_channel(self, channel_id):
 		im_list_response = self.workspace_client.api_call('im.list')
@@ -201,6 +144,10 @@ class Bot(object):
 		slack_event = event.event_info
 		event_type = slack_event['event']['type']
 
+		if 'subtype' in slack_event['event']:
+			if slack_event['event']['subtype'] == 'message_deleted':
+				event_type = 'message_deleted'
+
 
 
 		if event_type == 'reaction_added':
@@ -211,10 +158,12 @@ class Bot(object):
 		elif event_type == 'message':
 			print('onMessage')
 			return cls.message_posted(slack_event)
+		elif event_type == 'message_deleted':
+			return cls.message_removed(slack_event)
 
 	@classmethod
 	def message_removed(slack_event):
-		pass
+		db.remove_message(Message('', slack_event['channel'], slack_event['ts'], '', ''))
 
 	@staticmethod
 	def reaction_added(slack_event):
