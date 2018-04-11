@@ -153,7 +153,7 @@ def get_common_phrases():
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
-		if 'joined the channel' or 'left the channel' in msg:
+		if 'joined the channel' in msg or 'left the channel' in msg:
 			continue
 		for sent in sent_tokenize(msg):
 			words = word_tokenize(sent)
