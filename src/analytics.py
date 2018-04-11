@@ -157,8 +157,7 @@ def get_common_phrases():
 	for msg in texts:
 		if 'joined the channel' in msg or 'left the channel' in msg or 'uploaded a file' in msg:
 			continue
-		words = tknzer.tokenize(msg)
-		print(words)
+		words = msg.split(' ')
 		for phrase in ngrams(words, 3):
 			if all(word not in string.punctuation for word in phrase):
 				phrase_counter[phrase] += 1
