@@ -34,7 +34,7 @@ def favorite_reacts_of_user(user, count=5):
 	return _most_used_reacts(user_reacts, count)
 
 def get_top_by_value(data, count=5):
-	sorted_data = sorted(data.items(), key=operator.itemgetter(1))
+	sorted_data = sorted(data.items(), key=operator.itemgetter(1))[::-1]
 	spliced = sorted_data[:count]
 	return {item[0] : item[1] for item in spliced}
 
