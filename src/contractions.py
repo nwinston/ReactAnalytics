@@ -125,4 +125,4 @@ c_re = re.compile('(%s)' % '|'.join(cList.keys()))
 def expand_contractions(text, c_re=c_re):
     def replace(match):
         return cList[match.group(0)]
-    return c_re.sub(replace, text)
+    return c_re.sub(replace, text.lower())
