@@ -259,7 +259,7 @@ class Bot(object):
 			logging.getLogger(__name__).warning('Not authed')
 			return
 
-		if not users:
+		if not Bot.users:
 			Bot.load_users()
 			print(users)
 
