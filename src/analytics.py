@@ -160,7 +160,7 @@ def get_common_phrases():
 		for sent in sent_tokenize(msg):
 			words = word_tokenize(sent)
 			for phrase in ngrams(words, 3):
-				if all(word for word in phrase not in string.punctuation):
+				if all(word not in string.punctuation for word in phrase):
 					phrase_counter[phrase] += 1
 	return get_top_by_value(phrase_counter, 10)
 
