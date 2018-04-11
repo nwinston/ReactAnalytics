@@ -153,7 +153,8 @@ def get_common_phrases(msg_db):
 
 	finder = BigramCollocationFinder.from_words(texts)
 	finder.apply_freq_filter(3)
-	return finder.nbest(bigram_measures.pmi, 10)
+	best = finder.nbest(bigram_measures.pmi, 10)
+	print(str(best))
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
