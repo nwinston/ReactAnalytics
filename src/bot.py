@@ -309,7 +309,7 @@ class Bot(object):
 		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
 			if user in Bot.users:
-				result_str.append('@' + Bot.users[user]['display_name'] + ': ' + str(count) + '\n')
+				result_str.append('•' + Bot.users[user]['display_name'] + ': ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
 		return ''.join(result_str)
