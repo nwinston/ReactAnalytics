@@ -340,7 +340,7 @@ class Bot(object):
 		else:
 			result = analytics.most_unique_reacts_on_a_post(channel_id.group(0))
 
-		for msg_id, reacts in result:
+		for msg_id, reacts in result.items():
 			text = db.get_message_text('', msg_id)
 			if text:
 				react_str = ''.join([':' + r + ': ' for r in reacts.keys()])
