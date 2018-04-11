@@ -7,6 +7,7 @@ import os
 from nltk.util import ngrams
 from nltk import word_tokenize, sent_tokenize
 import string
+from contractions import expand_contractions
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
@@ -155,6 +156,7 @@ def get_common_phrases():
 	for msg in texts:
 		if 'joined the channel' in msg or 'left the channel' in msg:
 			continue
+		msg = expand_contractions(msg)
 		for sent in sent_tokenize(msg):
 			words = word_tokenize(sent)
 			for phrase in ngrams(words, 3):
