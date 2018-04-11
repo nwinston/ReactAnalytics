@@ -303,17 +303,15 @@ class Bot(object):
 
 	@classmethod
 	def most_reacts(cls, args):
-		print(users)
 		user_reacts = analytics.users_with_most_reacts()
 		user_re = re.compile('(?<=\@)(.*?)(?=\|)')
 
-		result_str = ['Users that react the most']
+		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
 			if user in Bot.users:
 				result_str.append(Bot.users[user]['display_name'] + ': ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
-				print(type(user))
 		return ''.join(result_str)
 
 
