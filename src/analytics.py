@@ -157,11 +157,10 @@ def get_common_phrases():
 	for msg in texts:
 		if 'joined the channel' in msg or 'left the channel' in msg or 'uploaded a file' in msg:
 			continue
-		for sent in sent_tokenize(msg):
-			words = tknzer.tokenize(sent)
-			for phrase in ngrams(words, 3):
-				if all(word not in string.punctuation for word in phrase):
-					phrase_counter[phrase] += 1
+		words = tknzer.tokenize(msg)
+		for phrase in ngrams(words, 3):
+			if all(word not in string.punctuation for word in phrase):
+				phrase_counter[phrase] += 1
 	return phrase_counter.most_common(10)
 
 def most_unique_reacts_on_a_post(count=5):
