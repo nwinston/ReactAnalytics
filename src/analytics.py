@@ -5,7 +5,7 @@ import re
 import db
 import os
 from nltk.util import ngrams
-from ntlk import word_tokenize, sent_tokenize
+from nltk import word_tokenize, sent_tokenize
 import string
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
