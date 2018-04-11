@@ -373,7 +373,7 @@ class Bot(object):
 		try:
 			for r in reacts:
 				result_str.append(':'+r + ':: ')
-				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, users, channels, 20)]
+				react_buzzwords = [item[0] for item in analytics.react_buzzword(r, Bot.users, Bot.channels, 10)]
 
 				if react_buzzwords:
 					result_str.append(', '.join(react_buzzwords) + '\n')
