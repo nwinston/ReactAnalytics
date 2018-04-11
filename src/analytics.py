@@ -146,8 +146,8 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 	return _most_used_reacts(react_count, count)
 
-def get_common_phrases(msg_db):
-	texts = msg_db.get_all_message_texts()
+def get_common_phrases():
+	texts = db.get_all_message_texts()
 	bigram_measures = nltk.collocations.BigramAssocMeasures()
 	trigram_measures = nltk.collocations.TrigramAssocMeasures()
 

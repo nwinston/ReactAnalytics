@@ -288,6 +288,10 @@ class Bot(object):
 		cls.send_dm(user_id, response)
 
 	@classmethod
+	def common_phrases(cls):
+		analytics.get_common_phrases()
+
+	@classmethod
 	def most_reacted_to_message(cls, text):
 		re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
 		result_str = []
