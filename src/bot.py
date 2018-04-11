@@ -282,6 +282,8 @@ class Bot(object):
 			response = cls.react_buzzwords(args)
 		elif command == MOST_REACTS:
 			response = cls.most_reacts(args)
+		elif command == COMMON_PHRASES:
+			response = cls.common_phrases()
 
 		cls.send_dm(user_id, response)
 
