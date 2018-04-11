@@ -57,8 +57,6 @@ def get_unique_words( msgs, users, channels):
 
 	for msg_id in msgs:
 		msg_text = msgs[msg_id]
-		print(msg_id)
-		print(msg_text)
 		if not msg_text:
 			continue
 		split_msg = set([w for w in msg_text.split(' ') if w not in stop_words])
@@ -82,8 +80,8 @@ def get_unique_words( msgs, users, channels):
 def react_buzzword(react_name, users, channels, count=5):
 	msgs = db.get_messages_with_react(react_name, False)
 	words = get_unique_words(msgs, users, channels)
-	print(words)
 	ret = get_top_by_value(words, count)
+	print(ret)
 	return ret
 
 def reacts_to_words(users, channels, count=5):
@@ -154,7 +152,6 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 def get_common_phrases():
 	phrase_counter = Counter()
-	tknzer = TweetTokenizer()
 	texts = db.get_all_message_texts()
 	for msg in texts:
 		if any(omit in msg for omit in omit_phrases):
