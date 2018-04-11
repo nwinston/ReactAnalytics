@@ -155,10 +155,10 @@ def get_common_phrases():
 	for msg in texts:
 		for sent in sent_tokenize(msg):
 			words = word_tokenize(sent)
-			for phrase in ngrams(words, 4):
+			for phrase in ngrams(words, 3):
 				if all(word not in string.punctuation for word in phrase):
-					phrase_counter[phrase] += 1
-	return get_top_by_value(phrase_counter)
+					phrase_counter[' '.join(phrase)] += 1
+	return get_top_by_value(phrase_counter, 10)
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
