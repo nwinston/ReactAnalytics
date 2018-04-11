@@ -292,7 +292,8 @@ class Bot(object):
 		phrases = analytics.get_common_phrases()
 		result_str = ['Common Phrases:\n']
 		for p in phrases:
-			result_str.append(str(p) + '\n')
+			print(p)
+			result_str.append(''.join(p[0]) + '\n')
 		return ''.join(result_str)
 
 	@classmethod

@@ -16,6 +16,8 @@ stop_words.add('')
 
 #nltk.download()
 
+omit_phrases = ['joined the channel', 'left the channel', 'pinned a message', 'uploaded a file']
+
 def most_used_reacts(count=5):
 	reacts = db.get_react_counts()
 	return _most_used_reacts(reacts, count)
@@ -155,7 +157,7 @@ def get_common_phrases():
 	tknzer = TweetTokenizer()
 	texts = db.get_all_message_texts()
 	for msg in texts:
-		if 'joined the channel' in msg or 'left the channel' in msg or 'uploaded a file' in msg:
+		if any(omit in msg for omit in omit_phrases):
 			continue
 		words = msg.split(' ')
 		for phrase in ngrams(words, 3):
