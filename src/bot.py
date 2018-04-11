@@ -261,7 +261,7 @@ class Bot(object):
 
 		if not Bot.users:
 			Bot.load_users()
-			print(users)
+
 
 		text = event['text'].split(' ')
 		user_id = event['user_id']
