@@ -158,9 +158,9 @@ def get_common_phrases(msg_db):
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
 	reacts = {msg_id : reacts[msg_id] for msg_id in reacts}
-	top = get_top_by_value(reacts, count, lambda x: len(x))
-	print(top)
-	return top
+	top_by_val = get_top_by_value(reacts, count, lambda x: len(operator.itemgetter(1))
+		print(top_by_val)
+	return top_by_val
 
 def users_with_most_reacts(count=5):
 	most_reacts = db.get_reacts_per_user()
