@@ -153,11 +153,13 @@ def get_common_phrases():
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
+		if 'joined the channel' or 'left the channel' in msg:
+			continue
 		for sent in sent_tokenize(msg):
 			words = word_tokenize(sent)
 			for phrase in ngrams(words, 3):
 				if all(word not in string.punctuation for word in phrase):
-					phrase_counter[' '.join(phrase)] += 1
+					phrase_counter[phrase] += 1
 	return get_top_by_value(phrase_counter, 10)
 
 def most_unique_reacts_on_a_post(count=5):
