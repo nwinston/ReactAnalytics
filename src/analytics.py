@@ -4,7 +4,6 @@ import operator
 import re
 import db
 import os
-from nltk.corpus import stop_words
 from nltk.util import ngrams
 from ntlk import word_tokenize, sent_tokenize
 import string
