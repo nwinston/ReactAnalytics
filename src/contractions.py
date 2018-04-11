@@ -1,3 +1,10 @@
+"""
+this code is not mine! i shamelessly copied it from http://stackoverflow.com/questions/19790188/expanding-english-language-contractions-in-python
+all credits go to alko and arturomp @ stack overflow.
+basically, it's a big find/replace.
+"""
+
+
 import re
 cList = {
   "ain't": "am not",
@@ -125,4 +132,4 @@ c_re = re.compile('(%s)' % '|'.join(cList.keys()))
 def expand_contractions(text, c_re=c_re):
     def replace(match):
         return cList[match.group(0)]
-    return c_re.sub(replace, text.lower())
+    return c_re.sub(replace, text)
