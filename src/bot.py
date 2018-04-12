@@ -53,6 +53,7 @@ class Bot(object):
 
 	@classmethod
 	def start(cls):
+		print('start')
 		if not Bot.started:
 			p = Process(target=Bot.event_handler_loop)
 			p.start()
