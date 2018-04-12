@@ -1,2 +1,2 @@
-web: python -u src/app.py
+web: gunicorn --chdir src app:app
 worker: python -u src/worker.py
