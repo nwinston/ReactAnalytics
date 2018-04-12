@@ -18,8 +18,14 @@ MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
 REACT_BUZZWORDS = 'buzzwords'
 MOST_REACTS = 'most_reacts'
 COMMON_PHRASES = 'common_phrases'
+MOST_MESSAGES = 'most_messages'
 
-VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACT_BUZZWORDS, MOST_REACTS, COMMON_PHRASES]
+VALID_COMMANDS = [MOST_USED_REACTS,
+ 				MOST_REACTED_TO_MESSAGES,
+				MOST_UNIQUE_REACTS_ON_POST,
+				REACT_BUZZWORDS,
+				MOST_REACTS,
+				COMMON_PHRASES]
 
 TIMER_INTERVAL = 2
 
@@ -43,13 +49,6 @@ class Bot(object):
 	users = {}
 	channels = {}
 	started = False
-
-	def __new__(cls, *args, **kwargs):
-		print('new')
-		if not cls._instance:
-			cls._instance = super(Bot, cls).__new__(
-									cls, *args, **kwargs)
-		return cls._instance
 
 
 	@classmethod
@@ -134,9 +133,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		evnt = Event(event_type, slack_event)
-		#with cls.lock:
-		#	Bot.event_queue.put(evnt)
-		cls.handle_event(evnt)
+		with cls.lock:
+			Bot.event_queue.put(evnt)
+		#cls.handle_event(evnt)
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -277,6 +276,11 @@ class Bot(object):
 			else:
 				print(user + 'not in users dictionary')
 		return ''.join(result_str)
+
+	@classmethod
+	def most_active(cls):
+		pass
+
 
 
 	@classmethod
