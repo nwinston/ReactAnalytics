@@ -4,7 +4,7 @@ import log
 from rq import Queue
 from rq.job import Job
 from worker import conn
-print('TESTESTEST')
+
 app = Flask(__name__)
 q = Queue(connection=conn)
 
