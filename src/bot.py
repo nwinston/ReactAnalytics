@@ -72,15 +72,16 @@ class Bot(object):
 														scope=cls.oauth['scope'])
 		if users_response['ok']:
 			next_users = users_response['members']
-			for user in next_users:
-				user_id = user['id']
-				user_name = user['name']
-				user_info = {'user_name' : user_name}
-				if 'display_name' in user['profile']:
-					user_info['display_name'] = user['profile']['display_name']
-				else:
-					user_info['display_name'] = user_name
-				Bot.users[user_id] = user_info
+			with cls.lock:
+				for user in next_users:
+					user_id = user['id']
+					user_name = user['name']
+					user_info = {'user_name' : user_name}
+					if 'display_name' in user['profile']:
+						user_info['display_name'] = user['profile']['display_name']
+					else:
+						user_info['display_name'] = user_name
+					Bot.users[user_id] = user_info
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
