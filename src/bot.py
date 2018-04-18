@@ -286,7 +286,8 @@ class Bot(object):
 		most_active = analytics.most_messages()
 		result_str = ['Most active users:\n']
 		print(most_active)
-		for user, _ in most_active.items():
+		for user in most_active:
+			user = user[0]
 			if user in Bot.users:
 				result_str.append('<@' + user + '>:\n')
 			else:
