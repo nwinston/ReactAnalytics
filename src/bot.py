@@ -238,6 +238,8 @@ class Bot(object):
 			response = cls.most_reacts(args)
 		elif command == COMMON_PHRASES:
 			response = cls.common_phrases()
+		elif command == MOST_ACTIVE:
+			response = cls.most_active()
 
 		cls.send_dm(user_id, response)
 
