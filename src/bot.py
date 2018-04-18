@@ -285,11 +285,12 @@ class Bot(object):
 	def most_active(cls):
 		most_active = analytics.most_messages()
 		result_str = ['Most active users:\n']
+		print(most_active)
 		for user in most_active:
 			if user in Bot.users:
 				result_str.append('<@' + user + '>:\n')
 			else:
-				print(user + 'not in users dictionary')
+				print(str(user) + 'not in users dictionary')
 		return ''.join(result_str)
 
 
