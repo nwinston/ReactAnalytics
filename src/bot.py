@@ -246,11 +246,12 @@ class Bot(object):
 
 	@classmethod
 	def user_exists(cls, user):
-		if user in Bot.users:
-			return True
-		else:
-			cls.load_users()
-			return user in Bot.users
+		with cls.lock:
+			if user in Bot.users:
+				return True
+			else:
+				cls.load_users()
+				return user in Bot.users
 
 	@classmethod
 	def common_phrases(cls):
