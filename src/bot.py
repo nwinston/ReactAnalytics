@@ -244,6 +244,14 @@ class Bot(object):
 		cls.send_dm(user_id, response)
 
 	@classmethod
+	def user_exists(cls, user):
+		if user in Bot.users:
+			return True
+		else:
+			cls.load_users()
+			return user in Bot.users
+
+	@classmethod
 	def common_phrases(cls):
 		phrases = analytics.get_common_phrases()
 		result_str = ['Common Phrases:\n']
@@ -275,7 +283,7 @@ class Bot(object):
 
 		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
-			if user in Bot.users:
+			if cls.user_exists(user):
 				result_str.append('<@' + user + '>: ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
@@ -287,13 +295,11 @@ class Bot(object):
 		result_str = ['Most active users:\n']
 		print(most_active)
 		for user in most_active:
-			if user in Bot.users:
+			if cls.user_exists(user):
 				result_str.append('<@' + user + '>\n')
 			else:
 				print(str(user) + 'not in users dictionary')
 		return ''.join(result_str)
-
-
 
 	@classmethod
 	def most_used_reacts(cls, text):
