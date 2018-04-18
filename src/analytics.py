@@ -176,6 +176,6 @@ def most_messages(count=5):
 	counter = Counter()
 	for msg in msgs:
 		print(msg)
-		counter[msg[1]] += 1
+		counter[msg[2]] += 1
 	return counter.most_common(count)
 
