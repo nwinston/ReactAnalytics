@@ -18,14 +18,15 @@ MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
 REACT_BUZZWORDS = 'buzzwords'
 MOST_REACTS = 'most_reacts'
 COMMON_PHRASES = 'common_phrases'
-MOST_MESSAGES = 'most_messages'
+MOST_ACTIVE = 'most_active'
 
 VALID_COMMANDS = [MOST_USED_REACTS,
  				MOST_REACTED_TO_MESSAGES,
 				MOST_UNIQUE_REACTS_ON_POST,
 				REACT_BUZZWORDS,
 				MOST_REACTS,
-				COMMON_PHRASES]
+				COMMON_PHRASES,
+				MOST_ACTIVE]
 
 TIMER_INTERVAL = 2
 
@@ -280,7 +281,14 @@ class Bot(object):
 
 	@classmethod
 	def most_active(cls):
-		pass
+		most_active = analytics.most_messages()
+		result_str = ['Most active users:\n']
+		for user in most_active:
+			if user in Bot.users:
+				result_str.append('<@' + user + '>:\n')
+			else:
+				print(user + 'not in users dictionary')
+		return ''.join(result_str)
 
 
 
@@ -316,10 +324,6 @@ class Bot(object):
 				result_str.append(text + ' : ' + react_str + '\n')
 
 		return ''.join(result_str)
-
-	@classmethod
-	def reacts_to_words(cls, text):
-		return ' '.join(analytics.reacts_to_words(users, channels))
 
 	@classmethod
 	def react_buzzwords(cls, text):

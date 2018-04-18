@@ -171,3 +171,10 @@ def users_with_most_reacts(count=5):
 	most_reacts = db.get_reacts_per_user()
 	return get_top_by_value(most_reacts, count)
 
+def most_messages(count=5):
+	msgs = db.get_message_table()
+	counter = Counter()
+	for msg in msgs:
+		counter[msg[1]] += 1
+	return counter.most_common(count)
+
