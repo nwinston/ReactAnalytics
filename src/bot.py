@@ -298,7 +298,7 @@ class Bot(object):
 	@classmethod
 	def most_unique_reacts_on_post(cls, text):
 		channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
-		result_str = []
+		result_str = ['Messages with most unique reacts:\n']
 		if not channel_id:
 			result = analytics.most_unique_reacts_on_a_post()
 		else:
@@ -311,10 +311,6 @@ class Bot(object):
 				result_str.append(text + ' : ' + react_str + '\n')
 
 		return ''.join(result_str)
-
-	@classmethod
-	def reacts_to_words(cls, text):
-		return ' '.join(analytics.reacts_to_words(users, channels))
 
 	@classmethod
 	def react_buzzwords(cls, text):
