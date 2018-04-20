@@ -44,8 +44,9 @@ def favorite_reacts_of_user(user, count=5):
 
 def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
 	sorted_data = sorted(data.items(), key=sort_key)[::-1]
-	spliced = sorted_data[:count]
-	return {item[0] : item[1] for item in spliced}
+	if count > 0:
+		sorted_data = sorted_data[:count]
+	return {item[0] : item[1] for item in sorted_data}
 
 # Given a list of message ids, get all the unique words
 # in those messages. Parses escaped channels/users
@@ -176,21 +177,22 @@ def most_unique_reacts_on_a_post(count=5):
 	return top_by_val
 
 def users_with_most_reacts(count=5):
-	most_reacts = db.get_reacts_per_user()
-	return get_top_by_value(most_reacts, count)
+	most_reacts = Counter(db.get_reacts_per_user())
+	if count < 1:
+		count = None
+	return Counter(most_reacts.most_common(count))
 
 def most_messages(count=5):
 	msgs = db.get_message_table()
 	counter = Counter()
 	for msg in msgs:
 		counter[msg[2]] += 1
-	return counter.most_common(count)
+	if count < 1:
+		count = None
+	return Counter(counter.most_common(count))
 
 def most_active(count=5):
-	reacts = db.get_user_reacts_table()
-	msgs = db.get_message_table()
-	counter = Counter()
-	for msg in msgs:
-		counter[msg[2]] += 1
-	for r in reacts:
-		counter[r[0]] += 1
+	most_msgs = analytics.most_messages(-1)
+	most_reacts = analytics.users_with_most_reacts(-1)
+	most_active = most_reacts + most_msgs
+	return dict(most_active.most_common(5))

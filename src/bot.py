@@ -268,7 +268,7 @@ class Bot(object):
 			elif command == COMMON_PHRASES:
 				response = cls.common_phrases()
 			elif command == MOST_ACTIVE:
-				response = 'not implemented'#cls.most_active()
+				response = cls.most_active()
 		except Exception as e:
 			cls.send_dm(user_id, 'There was an error processing your request')
 			raise e
@@ -323,7 +323,7 @@ class Bot(object):
 
 	@classmethod
 	def most_active(cls):
-		most_active = dict(analytics.most_messages())
+		most_active = analytics.most_active(-1)
 		result_str = ['Most active users:\n']
 		print(most_active)
 		for user in most_active:
