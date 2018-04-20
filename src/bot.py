@@ -72,7 +72,14 @@ class Bot(object):
 	def load_users(cls):
 		users_response = cls.workspace_client.api_call('users.list',
 														scope=cls.oauth['scope'])
-		if users_response['ok']:
+
+		if not users_response['ok']:
+			print('Failed to load users')
+			print(users_response)
+			return
+
+		should_continue = True
+		while should_continue:
 			next_users = users_response['members']
 			with cls.users_lock:
 				for user in next_users:
@@ -84,6 +91,19 @@ class Bot(object):
 					else:
 						user_info['display_name'] = user_name
 					Bot.users[user_id] = user_info
+			if 'response_metadata' in users_response:
+				next_cursor = users_response['response_metadata']['next_cursor']
+
+				if not next_cursor:
+					should_continue = False
+				else:
+					users_response = cls.workspace_client.api_call('users.list',
+																	scope=cls.oauth['scope'],
+																	cursor=next_cursor)
+					should_continue = users_response['ok']
+			else:
+				should_continue = False
+
 		else:
 			#raise Exception('Unable to load users: ' + )
 			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
