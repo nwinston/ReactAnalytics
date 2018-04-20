@@ -13,7 +13,7 @@ import db
 from time import sleep
 
 MOST_USED_REACTS = 'most_used'
-MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
+MOST_REACTED_TO_MESSAGES = 'most_reacted_to'
 MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
 REACT_BUZZWORDS = 'buzzwords'
 MOST_REACTS = 'most_reacts'
