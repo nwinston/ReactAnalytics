@@ -178,6 +178,7 @@ def most_unique_reacts_on_a_post(count=5):
 
 def users_with_most_reacts(count=5):
 	most_reacts = Counter(db.get_reacts_per_user())
+	print(most_reacts)
 	if count < 1:
 		count = None
 	return Counter(most_reacts.most_common(count))
@@ -194,6 +195,5 @@ def most_messages(count=5):
 def most_active(count=5):
 	most_msgs = most_messages(-1)
 	most_reacts = users_with_most_reacts(-1)
-	print(most_reacts)
 	most_active = most_reacts + most_msgs
 	return dict(most_active.most_common(count))
