@@ -140,6 +140,22 @@ def reacts_to_words(users, channels, count=5):
 
 	return word_to_reacts
 
+def decorator(condition):
+	def gen_react_count(f):
+		def wrapper(user_id=None, count=5):
+
+			def gen(counter):
+				for k in counter:
+					if condition(k):
+						yield (k, counter[k])
+
+			sliced = islice(gen(f(user_id, count)), 5)
+			sliced = dict((v[0], v[1]) for v in sliced)
+			return sliced
+		return wrapper
+	return gen_react_count
+
+@decorator(lambda id : bool(db.get_message_text('', id)))
 def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
 		ids = db.get_messages_by_user(user_id)
@@ -155,10 +171,13 @@ def most_reacted_to_posts(user_id=None, count=5):
 		react_count[msg_id] = count
 	react_count = dict(react_count.most_common())
 
-	sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id))), 5)
-	sliced = dict((v[0], v[1]) for v in sliced)
-	return sliced
+	return react_count
+
+	#sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id))), 5)
+	#sliced = dict((v[0], v[1]) for v in sliced)
+	#return sliced
 	#return dict(react_count.most_common(count))
+
 
 def gen(react_count, condition):
 	for k in react_count:
