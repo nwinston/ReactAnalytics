@@ -240,7 +240,7 @@ class Bot(object):
 		elif command == COMMON_PHRASES:
 			response = cls.common_phrases()
 		elif command == MOST_ACTIVE:
-			response = cls.most_active()
+			response = 'not implemented'#cls.most_active()
 
 		cls.send_dm(user_id, response)
 
