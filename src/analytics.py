@@ -161,11 +161,10 @@ def most_reacted_to_posts(user_id=None, count=5):
 		ids = db.get_messages_by_user(user_id)
 	else:
 		ids = db.get_message_ids()
-	#reacts_on_messages = db.get_reacts_on_messages(ids)
 
 	react_count = Counter()
 
-	qqq = db.execute('SELECT MessageID, Count(Count) FROM MessageReacts WHERE MessageID IN %s', tuple(ids))
+	qqq = db.execute("SELECT MessageID, Count(Count) FROM MessageReacts WHERE MessageID IN '%s'", tuple(ids))
 	for item in qqq:
 		react_count[item[0]] = item[1]
 	'''
