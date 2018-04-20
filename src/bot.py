@@ -367,7 +367,7 @@ class Bot(object):
 				cls.load_reacts()
 				missing_reacts = {r for r in reacts if r not in cls.reacts_list}
 				if missing_reacts:
-					result_str.append(' '.join(missing_reacts))
+					result_str.append(' '.join(':' + r + ':' for r in missing_reacts))
 					result_str.append(' not found.\n')
 				reacts = reacts - missing_reacts
 
