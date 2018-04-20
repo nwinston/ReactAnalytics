@@ -203,9 +203,10 @@ def most_active(count=5):
 
 
 	return dict(most_active.most_common(count))
-
+'''
 def most_common_if(func):
 	def wrapper(counter, key_condition, size):
 		filtered = (k : v for k, v in counter.items() if key_condition(k))
 		return islice(filtered, 5)
 	return wrapper
+'''
