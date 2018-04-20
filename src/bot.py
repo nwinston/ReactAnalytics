@@ -363,13 +363,13 @@ class Bot(object):
 		reacts = {r for r in reacts if r.strip(' ')}
 		print(reacts)
 		cls.reacts_lock.acquire()
-			if not all(r in cls.reacts_list for r in reacts):
-				cls.reacts_lock.release()
-				cls.load_reacts()
-				missing_reacts = {r for r in reacts if r not in cls.reacts_list}
-				if missing_reacts:
-					result_str.append(' '.join(':' + r + ':' for r in missing_reacts))
-					result_str.append(' not found.\n')
+		if not all(r in cls.reacts_list for r in reacts):
+			cls.reacts_lock.release()
+			cls.load_reacts()
+			missing_reacts = {r for r in reacts if r not in cls.reacts_list}
+			if missing_reacts:
+				result_str.append(' '.join(':' + r + ':' for r in missing_reacts))
+				result_str.append(' not found.\n')
 				reacts = reacts - missing_reacts
 
 
