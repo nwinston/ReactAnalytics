@@ -147,15 +147,15 @@ def most_reacted_to_posts(user_id=None, count=5):
 	else:
 		reacts_on_messages = db.get_reacts_on_all_messages()
 
-	react_count = {}
+	react_count = Counter()
 	print(reacts_on_messages)
 	for msg_id in reacts_on_messages:
 		count = 0
 		for r in reacts_on_messages[msg_id]:
 			count += reacts_on_messages[msg_id][r]
 		react_count[msg_id] = count
-
-	return _most_used_reacts(react_count, count)
+	print(react_count)
+	return dict(react_count.most_common(count))
 
 def get_common_phrases():
 	phrase_counter = Counter()
@@ -197,11 +197,5 @@ def most_active(count=5):
 	most_reacts = users_with_most_reacts(-1)
 	most_active = most_reacts + most_msgs
 
-	print('most_msgs')
-	print(most_msgs)
-	print('most_reacts')
-	print(most_reacts)
-	print('most_active')
-	print(most_active)
 
 	return dict(most_active.most_common(count))
