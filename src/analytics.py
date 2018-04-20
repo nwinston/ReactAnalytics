@@ -142,10 +142,9 @@ def reacts_to_words(users, channels, count=5):
 def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
 		ids = db.get_messages_by_user(user_id)
-		print(ids)
-		reacts_on_messages = {msg : db.get_reacts_on_message(msg) for msg in ids}
 	else:
-		reacts_on_messages = db.get_reacts_on_all_messages()
+		ids = db.get_message_ids()
+	reacts_on_messages = {msg : db.get_reacts_on_message(msg) for msg in ids if db.get_message_text(msg)}
 
 	react_count = Counter()
 	print(reacts_on_messages)
