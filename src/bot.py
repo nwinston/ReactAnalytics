@@ -241,8 +241,8 @@ class Bot(object):
 				response = cls.common_phrases()
 			elif command == MOST_ACTIVE:
 				response = 'not implemented'#cls.most_active()
-		except:
-			response = 'There was an error processing your request'
+		finally:
+			cls.send_dm(user_id, 'There was an error processing your request')
 
 		cls.send_dm(user_id, response)
 
