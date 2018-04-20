@@ -99,7 +99,7 @@ class Bot(object):
 
 	@classmethod
 	def load_reacts(cls):
-		resp = cls.bot_client.api_call('emoji.list')
+		resp = cls.bot_client.api_call('emoji.list', scope=cls.oauth['scope'])
 		if resp['ok']:
 			with cls.reacts_lock:
 				cls.reacts_list = {react for react in resp['emoji'].keys()}
