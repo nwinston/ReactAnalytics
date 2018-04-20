@@ -226,21 +226,23 @@ class Bot(object):
 		#check if there are any args
 		if len(text) > 1:
 			args = ' '.join(text[1:])
-
-		if command == MOST_USED_REACTS:
-			response = cls.most_used_reacts(args)
-		elif command == MOST_REACTED_TO_MESSAGES:
-			response = cls.most_reacted_to_message(args)
-		elif command == MOST_UNIQUE_REACTS_ON_POST:
-			response = cls.most_unique_reacts_on_post(args)
-		elif command == REACT_BUZZWORDS:
-			response = cls.react_buzzwords(args)
-		elif command == MOST_REACTS:
-			response = cls.most_reacts(args)
-		elif command == COMMON_PHRASES:
-			response = cls.common_phrases()
-		elif command == MOST_ACTIVE:
-			response = 'not implemented'#cls.most_active()
+		try:
+			if command == MOST_USED_REACTS:
+				response = cls.most_used_reacts(args)
+			elif command == MOST_REACTED_TO_MESSAGES:
+				response = cls.most_reacted_to_message(args)
+			elif command == MOST_UNIQUE_REACTS_ON_POST:
+				response = cls.most_unique_reacts_on_post(args)
+			elif command == REACT_BUZZWORDS:
+				response = cls.react_buzzwords(args)
+			elif command == MOST_REACTS:
+				response = cls.most_reacts(args)
+			elif command == COMMON_PHRASES:
+				response = cls.common_phrases()
+			elif command == MOST_ACTIVE:
+				response = 'not implemented'#cls.most_active()
+		except:
+			response = 'There was an error processing your request'
 
 		cls.send_dm(user_id, response)
 
