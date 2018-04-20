@@ -147,7 +147,6 @@ def most_reacted_to_posts(user_id=None, count=5):
 	reacts_on_messages = {msg : db.get_reacts_on_message(msg) for msg in ids if db.get_message_text(msg)}
 
 	react_count = Counter()
-	print(reacts_on_messages)
 	for msg_id in reacts_on_messages:
 		count = 0
 		for r in reacts_on_messages[msg_id]:
