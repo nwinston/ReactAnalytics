@@ -15,8 +15,8 @@ stop_words = set(line.strip() for line in open(stop_words_file))
 stop_words.add('')
 
 punc = string.punctuation
-punc.append('”')
-punc.append('“')
+punc += '”'
+punc += '“'
 
 #nltk.download()
 
