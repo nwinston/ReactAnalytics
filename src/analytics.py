@@ -157,8 +157,10 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 	#filtered = (k : v for k, v in react_count.items() if bool(db.get_message_text(k)))
 	filtered = dict((k, v) for k,v in react_count.items() if bool(db.get_message_text('', k)))
-	return islice(filtered, 5)
-
+	print(filtered)
+	sliced = islice(filtered, 5)
+	print(sliced)
+	return sliced
 	#return dict(react_count.most_common(count))
 
 def get_common_phrases():
