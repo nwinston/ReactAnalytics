@@ -260,7 +260,6 @@ def get_messages_by_user(user_id):
     conn.close()
     return msgs
 
-
 def get_message_text(team_id, msg_id, conn=None):
 
     query = "SELECT MessageText FROM Messages WHERE Messages.MessageID = %s"
