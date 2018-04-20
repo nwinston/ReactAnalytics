@@ -58,6 +58,7 @@ def get_unique_words( msgs, users, channels):
 		msg_text = msgs[msg_id]
 		if not msg_text:
 			continue
+		msg_text.translate(None, string.punctuation)
 		split_msg = set([w for w in msg_text.split(' ') if w.lower() not in stop_words])
 		for word in split_msg:
 			# tmp variable in case word is escaped (i.e linked name/channel)
@@ -178,3 +179,11 @@ def most_messages(count=5):
 		counter[msg[2]] += 1
 	return counter.most_common(count)
 
+def most_active(count=5):
+	reacts = db.get_user_reacts_table()
+	msgs = db.get_message_table()
+	counter = Counter()
+	for msg in msgs:
+		counter[msg[2]] += 1
+	for r in reacts:
+		counter[r[0]] += 1

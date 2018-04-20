@@ -377,3 +377,15 @@ def get_message_table():
     conn.close()
     return msgs
 
+def get_user_reacts_table():
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute('SELECT * FROM UserReacts')
+    row = c.fetchone()
+    reacts = []
+    while row:
+        msgs.append(row)
+        row = c.fetchone()
+    conn.close()
+    return reacts
+
