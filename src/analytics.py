@@ -153,15 +153,17 @@ def most_reacted_to_posts(user_id=None, count=5):
 		for r in reacts_on_messages[msg_id]:
 			count += reacts_on_messages[msg_id][r]
 		react_count[msg_id] = count
-	print(react_count)
 
 	#filtered = (k : v for k, v in react_count.items() if bool(db.get_message_text(k)))
-	filtered = dict((k, v) for k,v in react_count.items() if bool(db.get_message_text('', k)))
-	print(filtered)
-	sliced = islice(filtered, 5)
+	sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id)), 5))
 	print(sliced)
 	return sliced
 	#return dict(react_count.most_common(count))
+
+def gen(react_count, condition):
+	for k,v in react_count.items():
+		if condition(k):
+			yield dict(k,v)
 
 def get_common_phrases():
 	phrase_counter = Counter()
