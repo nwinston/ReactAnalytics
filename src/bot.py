@@ -323,7 +323,7 @@ class Bot(object):
 
 	@classmethod
 	def most_active(cls):
-		most_active = analytics.most_active(-1)
+		most_active = analytics.most_active()
 		result_str = ['Most active users:\n']
 		for user in most_active:
 			if cls.user_exists(user):
