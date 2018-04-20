@@ -60,9 +60,9 @@ def get_unique_words( msgs, users, channels):
 		msg_text = msgs[msg_id].lower()
 		if not msg_text:
 			continue
-		msg_text.translate(translator)
-		print(msg_text)
-		split_msg = {w for w in msg_text.split(' ') if w.lower() not in stop_words}
+		#msg_text.translate(translator)
+		split_msg = {w.translate(translator) for w in msg_text.split(' ') if w.lower() not in stop_words}
+		print(split_msg)
 		for word in split_msg:
 			# tmp variable in case word is escaped (i.e linked name/channel)
 			key = word
