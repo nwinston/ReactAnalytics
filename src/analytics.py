@@ -14,6 +14,10 @@ stop_words_file = up_dir + '/stopwords.txt'
 stop_words = set(line.strip() for line in open(stop_words_file))
 stop_words.add('')
 
+punc = string.punctuation
+punc.append('”')
+punc.append('“')
+
 #nltk.download()
 
 omit_phrases = ['joined the channel', 'left the channel', 'pinned a message', 'uploaded a file']
@@ -52,7 +56,7 @@ def get_unique_words( msgs, users, channels):
 
 	words = defaultdict(lambda: 1)
 
-	translator = str.maketrans('', '', string.punctuation)
+	translator = str.maketrans('', '', punc)
 
 	msgs = db.get_message_text_from_ids(msgs)
 
