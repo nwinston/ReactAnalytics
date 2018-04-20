@@ -275,7 +275,7 @@ def get_messages_by_user(user_id):
     return msgs
 
 def get_message_text(team_id, msg_id, conn=None):
-
+    print('get_msg_text')
     query = "SELECT MessageText FROM Messages WHERE Messages.MessageID = %s"
     close = False
     if conn is None:
