@@ -143,7 +143,7 @@ def reacts_to_words(users, channels, count=5):
 def decorator(condition):
 	def gen_react_count(f):
 		def wrapper(user_id=None, count=5):
-
+			# helper function
 			def gen(counter):
 				for k in counter:
 					if condition(k):
@@ -164,25 +164,14 @@ def most_reacted_to_posts(user_id=None, count=5):
 	reacts_on_messages = db.get_reacts_on_messages(ids)
 
 	react_count = Counter()
-	for msg_id in reacts_on_messages:
-		count = 0
-		for r in reacts_on_messages[msg_id]:
-			count += reacts_on_messages[msg_id][r]
+	for msg_id, reacts in reacts_on_messages.items():
+
+
+		count = reduce(lambda x, y: reacts[x] + y, reacts, 0)
 		react_count[msg_id] = count
 	react_count = dict(react_count.most_common())
 
 	return react_count
-
-	#sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id))), 5)
-	#sliced = dict((v[0], v[1]) for v in sliced)
-	#return sliced
-	#return dict(react_count.most_common(count))
-
-
-def gen(react_count, condition):
-	for k in react_count:
-		if condition(k):
-			yield (k, react_count[k])
 
 def get_common_phrases():
 	phrase_counter = Counter()
@@ -222,14 +211,5 @@ def most_messages(count=5):
 def most_active(count=5):
 	most_msgs = most_messages(-1)
 	most_reacts = users_with_most_reacts(-1)
-	most_active = most_reacts + most_msgs
-
-
-	return dict(most_active.most_common(count))
-'''
-def most_common_if(func):
-	def wrapper(counter, key_condition, size):
-		filtered = (k : v for k, v in counter.items() if key_condition(k))
-		return islice(filtered, 5)
-	return wrapper
-'''
+	total = most_reacts + most_msgs
+	return dict(total.most_common(count))
