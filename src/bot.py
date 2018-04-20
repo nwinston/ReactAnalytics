@@ -303,8 +303,8 @@ class Bot(object):
 			result_str.append('Most reacted to posts for ' + users[user_id] + '\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
-		for msg in msgs:
-			result_str.append(str(db.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
+		for msg, count in msgs.items():
+			result_str.append(str(db.get_message_text('', msg)) + ' : ' + str(count) + '\n')
 
 		return ''.join(result_str)
 
