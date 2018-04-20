@@ -52,13 +52,15 @@ def get_unique_words( msgs, users, channels):
 
 	words = defaultdict(lambda: 1)
 
+	translator = str.maketrans('', '', string.punctuation)
+
 	msgs = db.get_message_text_from_ids(msgs)
 
 	for msg_id in msgs:
 		msg_text = msgs[msg_id]
 		if not msg_text:
 			continue
-		msg_text.translate(None, string.punctuation)
+		msg_text.translate(translator)
 		split_msg = set([w for w in msg_text.split(' ') if w.lower() not in stop_words])
 		for word in split_msg:
 			# tmp variable in case word is escaped (i.e linked name/channel)
