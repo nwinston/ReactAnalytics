@@ -154,8 +154,9 @@ def most_reacted_to_posts(user_id=None, count=5):
 			count += reacts_on_messages[msg_id][r]
 		react_count[msg_id] = count
 	react_count = dict(react_count.most_common())
-	#filtered = (k : v for k, v in react_count.items() if bool(db.get_message_text(k)))
+
 	sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id))), 5)
+	print(sliced)
 	sliced = dict((v[0], v[1]) for v in sliced)
 	return sliced
 	#return dict(react_count.most_common(count))
