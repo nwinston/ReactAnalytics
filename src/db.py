@@ -397,8 +397,20 @@ def get_user_reacts_table():
     row = c.fetchone()
     reacts = []
     while row:
-        msgs.append(row)
+        reacts.append(row)
         row = c.fetchone()
     conn.close()
     return reacts
+
+def execute(query, args):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(query, args)
+    result = []
+    row = c.fetchone()
+    while row:
+        result.append(row)
+        row = c.fetchone()
+    conn.close()
+    return result
 

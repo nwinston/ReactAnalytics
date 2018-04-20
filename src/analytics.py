@@ -140,7 +140,7 @@ def reacts_to_words(users, channels, count=5):
 
 	return word_to_reacts
 
-def decorator(condition):
+def conditional_generator(condition):
 	def gen_react_count(f):
 		def wrapper(user_id=None, count=5):
 			# helper function
@@ -155,20 +155,24 @@ def decorator(condition):
 		return wrapper
 	return gen_react_count
 
-@decorator(lambda id : bool(db.get_message_text('', id)))
+@conditional_generator(lambda id : bool(db.get_message_text('', id)))
 def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
 		ids = db.get_messages_by_user(user_id)
 	else:
 		ids = db.get_message_ids()
-	reacts_on_messages = db.get_reacts_on_messages(ids)
+	#reacts_on_messages = db.get_reacts_on_messages(ids)
 
 	react_count = Counter()
+
+	qqq = db.execute('SELECT MessageID, Count(Count) FROM MessageReacts WHERE MessageID IN %s', (msg_id for msg_id in ids))
+	for item in qqq:
+		react_count[item[0]] = item[1]
+	'''
 	for msg_id, reacts in reacts_on_messages.items():
-
-
 		count = reduce(lambda x, y: reacts[x] + y, reacts, 0)
 		react_count[msg_id] = count
+	'''
 	react_count = dict(react_count.most_common())
 
 	return react_count
