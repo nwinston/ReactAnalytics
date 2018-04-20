@@ -181,7 +181,7 @@ def users_with_most_reacts(count=5):
 	print(most_reacts)
 	if count < 1:
 		count = None
-	return Counter(most_reacts.most_common(count))
+	return Counter(dict(most_reacts.most_common(count)))
 
 def most_messages(count=5):
 	msgs = db.get_message_table()
@@ -190,7 +190,7 @@ def most_messages(count=5):
 		counter[msg[2]] += 1
 	if count < 1:
 		count = None
-	return Counter(counter.most_common(count))
+	return Counter(dict(counter.most_common(count)))
 
 def most_active(count=5):
 	most_msgs = most_messages(-1)
