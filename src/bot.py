@@ -46,10 +46,12 @@ class Bot(object):
 	event_queue = Queue()
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
-	lock = Lock()
+	users_lock = Lock()
+	reacts_lock = Lock()
 	users = {}
 	channels = {}
 	started = False
+	reacts_list = set()
 
 
 	@classmethod
@@ -72,7 +74,7 @@ class Bot(object):
 														scope=cls.oauth['scope'])
 		if users_response['ok']:
 			next_users = users_response['members']
-			with cls.lock:
+			with cls.users_lock:
 				for user in next_users:
 					user_id = user['id']
 					user_name = user['name']
@@ -94,6 +96,16 @@ class Bot(object):
 			return channel_id in im_channels
 		else:
 			return False
+
+	@classmethod
+	def load_reacts(cls):
+		resp = cls.bot_client.api_call('emoji.list')
+		if resp['ok']:
+			with cls.reacts_lock:
+				cls.reacts_list = {react for react in resp['emoji'].keys()}
+		else:
+			print('Failed to load reacts')
+			print(resp)
 
 	@classmethod
 	def send_dm(cls, user_id, message):
@@ -249,7 +261,7 @@ class Bot(object):
 
 	@classmethod
 	def user_exists(cls, user):
-		with cls.lock:
+		with cls.users_lock:
 			if user in Bot.users:
 				return True
 			else:
@@ -345,9 +357,20 @@ class Bot(object):
 		if not text.strip():
 			return 'specify at least one react'
 
-		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
-		reacts = [r for r in reacts if r.strip(' ')]
 		result_str = []
+
+		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
+		reacts = {r for r in reacts if r.strip(' ')}
+		print(reacts)
+		with cls.reacts_lock:
+			if not all(r in cls.reacts_list for r in reacts):
+				cls.load_reacts()
+				missing_reacts = {r for r in reacts if r not in cls.reacts_list}
+				if missing_reacts:
+					result_str.append(' '.join(missing_reacts))
+					result_str.append(' not found.\n')
+				reacts = reacts - missing_reacts
+
 
 		try:
 			for r in reacts:
