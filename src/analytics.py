@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import islice
 from collections import defaultdict, OrderedDict, Counter
 import operator
 import re
@@ -13,6 +14,10 @@ up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
 stop_words = set(line.strip() for line in open(stop_words_file))
 stop_words.add('')
+
+punc = string.punctuation
+punc += '”'
+punc += '“'
 
 #nltk.download()
 
@@ -40,8 +45,9 @@ def favorite_reacts_of_user(user, count=5):
 
 def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
 	sorted_data = sorted(data.items(), key=sort_key)[::-1]
-	spliced = sorted_data[:count]
-	return {item[0] : item[1] for item in spliced}
+	if count > 0:
+		sorted_data = sorted_data[:count]
+	return {item[0] : item[1] for item in sorted_data}
 
 # Given a list of message ids, get all the unique words
 # in those messages. Parses escaped channels/users
@@ -52,13 +58,17 @@ def get_unique_words( msgs, users, channels):
 
 	words = defaultdict(lambda: 1)
 
+	translator = str.maketrans('', '', punc)
+
 	msgs = db.get_message_text_from_ids(msgs)
 
 	for msg_id in msgs:
-		msg_text = msgs[msg_id]
+		msg_text = msgs[msg_id].lower()
 		if not msg_text:
 			continue
-		split_msg = set([w for w in msg_text.split(' ') if w.lower() not in stop_words])
+		#msg_text.translate(translator)
+		split_msg = {w.translate(translator) for w in msg_text.split(' ') if w.lower() not in stop_words}
+		print(split_msg)
 		for word in split_msg:
 			# tmp variable in case word is escaped (i.e linked name/channel)
 			key = word
@@ -133,20 +143,27 @@ def reacts_to_words(users, channels, count=5):
 def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
 		ids = db.get_messages_by_user(user_id)
-		print(ids)
-		reacts_on_messages = {msg : db.get_reacts_on_message(msg) for msg in ids}
 	else:
-		reacts_on_messages = db.get_reacts_on_all_messages()
+		ids = db.get_message_ids()
+	reacts_on_messages = db.get_reacts_on_messages(ids)
 
-	react_count = {}
-	print(reacts_on_messages)
+	react_count = Counter()
 	for msg_id in reacts_on_messages:
 		count = 0
 		for r in reacts_on_messages[msg_id]:
 			count += reacts_on_messages[msg_id][r]
 		react_count[msg_id] = count
+	react_count = dict(react_count.most_common())
 
-	return _most_used_reacts(react_count, count)
+	sliced = islice(gen(react_count, lambda id : bool(db.get_message_text('', id))), 5)
+	sliced = dict((v[0], v[1]) for v in sliced)
+	return sliced
+	#return dict(react_count.most_common(count))
+
+def gen(react_count, condition):
+	for k in react_count:
+		if condition(k):
+			yield (k, react_count[k])
 
 def get_common_phrases():
 	phrase_counter = Counter()
@@ -168,6 +185,32 @@ def most_unique_reacts_on_a_post(count=5):
 	return top_by_val
 
 def users_with_most_reacts(count=5):
-	most_reacts = db.get_reacts_per_user()
-	return get_top_by_value(most_reacts, count)
+	most_reacts = Counter(db.get_reacts_per_user())
+	print(most_reacts)
+	if count < 1:
+		count = None
+	return Counter(dict(most_reacts.most_common(count)))
 
+def most_messages(count=5):
+	msgs = db.get_message_table()
+	counter = Counter()
+	for msg in msgs:
+		counter[msg[2]] += 1
+	if count < 1:
+		count = None
+	return Counter(dict(counter.most_common(count)))
+
+def most_active(count=5):
+	most_msgs = most_messages(-1)
+	most_reacts = users_with_most_reacts(-1)
+	most_active = most_reacts + most_msgs
+
+
+	return dict(most_active.most_common(count))
+'''
+def most_common_if(func):
+	def wrapper(counter, key_condition, size):
+		filtered = (k : v for k, v in counter.items() if key_condition(k))
+		return islice(filtered, 5)
+	return wrapper
+'''

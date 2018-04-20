@@ -59,7 +59,8 @@ def get_help_response():
                                 bot.MOST_REACTED_TO_MESSAGES, '[_optional_ *@User*]',
                                 bot.REACT_BUZZWORDS, '[_required_ :react:, :react2: ...]',
                                 bot.MOST_REACTS, '',
-                                bot.COMMON_PHRASES, ''
+                                bot.COMMON_PHRASES, '',
+                                bot.MOST_ACTIVE, ''
                                 )
 
 @app.route('/react_analytics', methods=['GET', 'POST'])

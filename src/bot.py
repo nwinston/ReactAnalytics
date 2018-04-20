@@ -13,13 +13,20 @@ import db
 from time import sleep
 
 MOST_USED_REACTS = 'most_used'
-MOST_REACTED_TO_MESSAGES = 'most_reacted_to_messages'
+MOST_REACTED_TO_MESSAGES = 'most_reacted_to'
 MOST_UNIQUE_REACTS_ON_POST = 'most_unique'
 REACT_BUZZWORDS = 'buzzwords'
 MOST_REACTS = 'most_reacts'
 COMMON_PHRASES = 'common_phrases'
+MOST_ACTIVE = 'most_active'
 
-VALID_COMMANDS = [MOST_USED_REACTS, MOST_REACTED_TO_MESSAGES, MOST_UNIQUE_REACTS_ON_POST, REACT_BUZZWORDS, MOST_REACTS, COMMON_PHRASES]
+VALID_COMMANDS = [MOST_USED_REACTS,
+ 				MOST_REACTED_TO_MESSAGES,
+				MOST_UNIQUE_REACTS_ON_POST,
+				REACT_BUZZWORDS,
+				MOST_REACTS,
+				COMMON_PHRASES,
+				MOST_ACTIVE]
 
 TIMER_INTERVAL = 2
 
@@ -39,21 +46,17 @@ class Bot(object):
 	event_queue = Queue()
 	name = "reactanalyticsbot"
 	emoji = ":robot_face:"
-	lock = Lock()
+	users_lock = Lock()
+	reacts_lock = Lock()
 	users = {}
 	channels = {}
 	started = False
-
-	def __new__(cls, *args, **kwargs):
-		print('new')
-		if not cls._instance:
-			cls._instance = super(Bot, cls).__new__(
-									cls, *args, **kwargs)
-		return cls._instance
+	reacts_list = set()
 
 
 	@classmethod
 	def start(cls):
+		print('start')
 		if not Bot.started:
 			p = Process(target=Bot.event_handler_loop)
 			p.start()
@@ -69,20 +72,37 @@ class Bot(object):
 	def load_users(cls):
 		users_response = cls.workspace_client.api_call('users.list',
 														scope=cls.oauth['scope'])
-		if users_response['ok']:
+
+		if not users_response['ok']:
+			print('Failed to load users')
+			print(users_response)
+			return
+
+		should_continue = True
+		while should_continue:
 			next_users = users_response['members']
-			for user in next_users:
-				user_id = user['id']
-				user_name = user['name']
-				user_info = {'user_name' : user_name}
-				if 'display_name' in user['profile']:
-					user_info['display_name'] = user['profile']['display_name']
+			with cls.users_lock:
+				for user in next_users:
+					user_id = user['id']
+					user_name = user['name']
+					user_info = {'user_name' : user_name}
+					if 'display_name' in user['profile']:
+						user_info['display_name'] = user['profile']['display_name']
+					else:
+						user_info['display_name'] = user_name
+					Bot.users[user_id] = user_info
+			if 'response_metadata' in users_response:
+				next_cursor = users_response['response_metadata']['next_cursor']
+
+				if not next_cursor:
+					should_continue = False
 				else:
-					user_info['display_name'] = user_name
-				Bot.users[user_id] = user_info
-		else:
-			#raise Exception('Unable to load users: ' + )
-			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
+					users_response = cls.workspace_client.api_call('users.list',
+																	scope=cls.oauth['scope'],
+																	cursor=next_cursor)
+					should_continue = users_response['ok']
+			else:
+				should_continue = False
 
 	# Given a channel ID checks if it's a direct message
 	def is_dm_channel(self, channel_id):
@@ -92,6 +112,16 @@ class Bot(object):
 			return channel_id in im_channels
 		else:
 			return False
+
+	@classmethod
+	def load_reacts(cls):
+		resp = cls.workspace_client.api_call('emoji.list')
+		if resp['ok']:
+			with cls.reacts_lock:
+				cls.reacts_list = {react for react in resp['emoji'].keys()}
+		else:
+			print('Failed to load reacts')
+			print(resp)
 
 	@classmethod
 	def send_dm(cls, user_id, message):
@@ -224,21 +254,34 @@ class Bot(object):
 		#check if there are any args
 		if len(text) > 1:
 			args = ' '.join(text[1:])
-
-		if command == MOST_USED_REACTS:
-			response = cls.most_used_reacts(args)
-		elif command == MOST_REACTED_TO_MESSAGES:
-			response = cls.most_reacted_to_message(args)
-		elif command == MOST_UNIQUE_REACTS_ON_POST:
-			response = cls.most_unique_reacts_on_post(args)
-		elif command == REACT_BUZZWORDS:
-			response = cls.react_buzzwords(args)
-		elif command == MOST_REACTS:
-			response = cls.most_reacts(args)
-		elif command == COMMON_PHRASES:
-			response = cls.common_phrases()
+		try:
+			if command == MOST_USED_REACTS:
+				response = cls.most_used_reacts(args)
+			elif command == MOST_REACTED_TO_MESSAGES:
+				response = cls.most_reacted_to_message(args)
+			elif command == MOST_UNIQUE_REACTS_ON_POST:
+				response = cls.most_unique_reacts_on_post(args)
+			elif command == REACT_BUZZWORDS:
+				response = cls.react_buzzwords(args)
+			elif command == MOST_REACTS:
+				response = cls.most_reacts(args)
+			elif command == COMMON_PHRASES:
+				response = cls.common_phrases()
+			elif command == MOST_ACTIVE:
+				response = cls.most_active()
+		except Exception as e:
+			cls.send_dm(user_id, 'There was an error processing your request')
+			raise e
 
 		cls.send_dm(user_id, response)
+
+	@classmethod
+	def user_exists(cls, user):
+		if user in Bot.users:
+			return True
+		else:
+			cls.load_users()
+			return user in Bot.users
 
 	@classmethod
 	def common_phrases(cls):
@@ -253,15 +296,15 @@ class Bot(object):
 		re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
 		result_str = []
 		if not re_object:
-			result_str.append('Most reacted to posts\n:')
+			result_str.append('Most reacted to posts:\n')
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
-			result_str.append('Most reacted to posts for ' + users[user_id] + '\n')
+			result_str.append('Most reacted to posts for ' + users[user_id] + ':\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
-		for msg in msgs:
-			result_str.append(str(db.get_message_text('', msg[0])) + ' : ' + str(msg[1]) + '\n')
+		for msg, count in msgs.items():
+			result_str.append(str(db.get_message_text('', msg)) + ' : ' + str(count) + '\n')
 
 		return ''.join(result_str)
 
@@ -272,12 +315,22 @@ class Bot(object):
 
 		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
-			if user in Bot.users:
+			if cls.user_exists(user):
 				result_str.append('<@' + user + '>: ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
 		return ''.join(result_str)
 
+	@classmethod
+	def most_active(cls):
+		most_active = analytics.most_active()
+		result_str = ['Most active users:\n']
+		for user in most_active:
+			if cls.user_exists(user):
+				result_str.append('<@' + user + '>\n')
+			else:
+				print(str(user) + 'not in users dictionary')
+		return ''.join(result_str)
 
 	@classmethod
 	def most_used_reacts(cls, text):
@@ -318,9 +371,11 @@ class Bot(object):
 		if not text.strip():
 			return 'specify at least one react'
 
-		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
-		reacts = [r for r in reacts if r.strip(' ')]
 		result_str = []
+
+		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
+		reacts = {r for r in reacts if r.strip(' ')}
+
 
 		try:
 			for r in reacts:
