@@ -376,14 +376,6 @@ class Bot(object):
 
 		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
 		reacts = {r for r in reacts if r.strip(' ')}
-		print(reacts)
-		if not all(r in cls.reacts_list for r in reacts):
-			cls.load_reacts()
-			missing_reacts = {r for r in reacts if r not in cls.reacts_list}
-			if missing_reacts:
-				result_str.append(' '.join(':' + r + ':' for r in missing_reacts))
-				result_str.append(' not found.\n')
-				reacts = reacts - missing_reacts
 
 
 		try:
