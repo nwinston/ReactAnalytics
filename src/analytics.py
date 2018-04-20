@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import islice
 from collections import defaultdict, OrderedDict, Counter
 import operator
 import re
@@ -153,7 +154,11 @@ def most_reacted_to_posts(user_id=None, count=5):
 			count += reacts_on_messages[msg_id][r]
 		react_count[msg_id] = count
 	print(react_count)
-	return dict(react_count.most_common(count))
+
+	filtered = (k : v for k, v in react_count.items() if bool(db.get_message_text(k)))
+	return islice(filtered, 5)
+
+	#return dict(react_count.most_common(count))
 
 def get_common_phrases():
 	phrase_counter = Counter()
@@ -197,3 +202,9 @@ def most_active(count=5):
 
 
 	return dict(most_active.most_common(count))
+
+def most_common_if(func):
+	def wrapper(counter, key_condition, size):
+		filtered = (k : v for k, v in counter.items() if key_condition(k))
+		return islice(filtered, 5)
+	return wrapper
