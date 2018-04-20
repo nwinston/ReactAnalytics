@@ -104,10 +104,6 @@ class Bot(object):
 			else:
 				should_continue = False
 
-		else:
-			#raise Exception('Unable to load users: ' + )
-			logging.getLogger(__name__).error(msg="Unable to load users: " + users_response['error'])
-
 	# Given a channel ID checks if it's a direct message
 	def is_dm_channel(self, channel_id):
 		im_list_response = self.workspace_client.api_call('im.list')
