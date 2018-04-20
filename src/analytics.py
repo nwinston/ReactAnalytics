@@ -196,4 +196,12 @@ def most_active(count=5):
 	most_msgs = most_messages(-1)
 	most_reacts = users_with_most_reacts(-1)
 	most_active = most_reacts + most_msgs
+
+	print('most_msgs')
+	print(most_msgs)
+	print('most_reacts')
+	print(most_reacts)
+	print('most_active')
+	print(most_active)
+
 	return dict(most_active.most_common(count))
