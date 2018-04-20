@@ -214,8 +214,12 @@ def get_reacts_per_user():
     return users
 
 
-def get_reacts_on_message(msg_id):
-    conn = get_connection()
+def get_reacts_on_message(msg_id, conn=None):
+    close = False
+    if not conn:
+        close = True
+        conn = get_connection()
+
     c = conn.cursor()
     c.execute(
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
@@ -225,8 +229,18 @@ def get_reacts_on_message(msg_id):
     while row:
         reacts[row[0]] = row[1]
         row = c.fetchone()
+    if close:
+        conn.close()
+    return reacts
+
+def get_reacts_on_messages(msgs):
+    conn = get_connection()
+    reacts = {}
+    for msg in msgs:
+        reacts[msg] = get_reacts_on_message(msg, conn)
     conn.close()
     return reacts
+
 
 def get_reacts_on_all_messages():
     conn = get_connection()
