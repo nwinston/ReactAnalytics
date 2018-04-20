@@ -163,7 +163,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 def gen(react_count, condition):
 	for k,v in react_count.items():
 		if condition(k):
-			yield dict(k,v)
+			yield (k, v)
 
 def get_common_phrases():
 	phrase_counter = Counter()
