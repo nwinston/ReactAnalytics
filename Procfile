@@ -1,2 +1,2 @@
 web: gunicorn --chdir src app:app
-worker: python -u src/worker.py
+worker: celery worker --app=src/tasks.app

@@ -17,4 +17,4 @@ gunicorn
 nltk
 redis
 rq
-honcho
+celery

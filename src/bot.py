@@ -20,13 +20,13 @@ MOST_REACTS = 'most_reacts'
 COMMON_PHRASES = 'common_phrases'
 MOST_ACTIVE = 'most_active'
 
-VALID_COMMANDS = [MOST_USED_REACTS,
- 				MOST_REACTED_TO_MESSAGES,
-				MOST_UNIQUE_REACTS_ON_POST,
-				REACT_BUZZWORDS,
-				MOST_REACTS,
-				COMMON_PHRASES,
-				MOST_ACTIVE]
+VALID_COMMANDS = {MOST_USED_REACTS : '[_optional_ *@User*]',
+                  MOST_UNIQUE_REACTS_ON_POST : '[_optional_ *@User*]',
+                                MOST_REACTED_TO_MESSAGES : '[_optional_ *@User*]',
+                                REACT_BUZZWORDS : '[_required_ :react:, :react2: ...]',
+                                MOST_REACTS : '',
+                                COMMON_PHRASES : '',
+                                MOST_ACTIVE : ''}
 
 TIMER_INTERVAL = 2
 
@@ -50,23 +50,22 @@ class Bot(object):
 	reacts_lock = Lock()
 	users = {}
 	channels = {}
-	started = False
 	reacts_list = set()
 
+	def __init__(self):
+		self.start()
 
 	@classmethod
 	def start(cls):
-		print('start')
-		if not Bot.started:
-			p = Process(target=Bot.event_handler_loop)
-			p.start()
-			Bot.started = True
-
-
+		p = Process(target=Bot.event_handler_loop)
+		p.start()
 
 	'''
 	API INTERACTIONS
 	'''
+	@classmethod
+	def verify_token(cls, token):
+		return cls.verification == token
 
 	@classmethod
 	def load_users(cls):
@@ -164,9 +163,9 @@ class Bot(object):
 	@classmethod
 	def on_event(cls, event_type, slack_event):
 		evnt = Event(event_type, slack_event)
-		#with cls.lock:
-		#	Bot.event_queue.put(evnt)
-		cls.handle_event(evnt)
+
+		cls.event_queue.put(evnt)
+		#cls.handle_event(evnt)
 
 	@classmethod
 	def handle_api_event(cls, event):
@@ -192,7 +191,7 @@ class Bot(object):
 			return cls.message_removed(slack_event)
 
 	@classmethod
-	def message_removed(slack_event):
+	def message_removed(cls, slack_event):
 		db.remove_message(Message('', slack_event['channel'], slack_event['ts'], '', ''))
 
 	@staticmethod
@@ -300,7 +299,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
-			result_str.append('Most reacted to posts for ' + users[user_id] + ':\n')
+			result_str.append('Most reacted to posts for ' + cls.users[user_id] + ':\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg, count in msgs.items():
@@ -395,9 +394,9 @@ class Bot(object):
 
 	@classmethod
 	def event_handler_loop(cls):
-		print('event_handler_loop')
+		print('start event loop')
 		while True:
-			with Bot.lock:
+			while not cls.event_queue.empty():
 				event = Bot.event_queue.get()
 				cls.handle_event(event)
 			sleep(1)
