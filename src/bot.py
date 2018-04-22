@@ -414,5 +414,5 @@ class Event(object):
 		self.event_info = event_info
 
 class EventType(Enum):
-	SLASH_COMMAND = 0
-	API_EVENT = 1
+	SLASH_COMMAND = 'EVENTTYPE_SLASHCOMMAND'
+	API_EVENT = 'EVENTTYPE_APIEVENT'
