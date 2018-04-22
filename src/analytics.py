@@ -147,8 +147,14 @@ def get_top(condition=None):
 			# helper function
 			def gen(counter):
 				for k in counter:
-					if condition and condition(k):
+					if not condition:
 						yield (k, counter[k])
+					else:
+						if condition(k):
+							yield (k, counter[k])
+						else:
+							continue
+
 
 			sliced = islice(gen(f(*args, **kwargs)), 5)
 			sliced = dict((v[0], v[1]) for v in sliced)
