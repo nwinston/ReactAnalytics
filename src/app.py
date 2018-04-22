@@ -61,7 +61,7 @@ def hears():
         })
 
     if 'event' in slack_event:
-        task = queue_bot_event.delay(slack_event.get('token'), EVENT_TYPE_API_EVENT, slack_event)
+        task = queue_bot_event.apply(args=(slack_event.get('token'), EVENT_TYPE_API_EVENT, slack_event))
         task.wait()
         if not task:
             message = "Invalid Slack verification token"

@@ -34,43 +34,44 @@ TIMER_INTERVAL = 2
 
 authed_teams = {}
 class Bot(object):
-	oauth = {"client_id": os.environ.get("CLIENT_ID"),
-				  "client_secret": os.environ.get("CLIENT_SECRET"),
-				  # Scopes provide and limit permissions to what our app
-				  # can access. It's important to use the most restricted
-				  # scope that your app will need.
-				  "scope": 'bot'}
-	verification = os.environ.get("VERIFICATION_TOKEN")
-	bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
-	workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
-	event_queue = Queue()
-	name = "reactanalyticsbot"
-	emoji = ":robot_face:"
-	users_lock = Lock()
-	reacts_lock = Lock()
-	users = {}
-	channels = {}
-	reacts_list = set()
+
 
 	def __init__(self):
+		self.oauth = {"client_id": os.environ.get("CLIENT_ID"),
+				 "client_secret": os.environ.get("CLIENT_SECRET"),
+				 # Scopes provide and limit permissions to what our app
+				 # can access. It's important to use the most restricted
+				 # scope that your app will need.
+				 "scope": 'bot'}
+		self.verification = os.environ.get("VERIFICATION_TOKEN")
+		self.bot_client = SlackClient(os.environ.get('BOT_ACCESS_TOKEN'))
+		self.workspace_client = SlackClient(os.environ.get('ACCESS_TOKEN'))
+		self.event_queue = Queue()
+		self.name = "reactanalyticsbot"
+		self.emoji = ":robot_face:"
+		self.users_lock = Lock()
+		self.reacts_lock = Lock()
+		self.users = {}
+		self.channels = {}
+		self.reacts_list = set()
 		self.start()
 
-	@classmethod
-	def start(cls):
-		p = Process(target=Bot.event_handler_loop)
+	
+	def start(self):
+		p = Process(target=self.event_handler_loop)
 		p.start()
 
 	'''
 	API INTERACTIONS
 	'''
-	@classmethod
-	def verify_token(cls, token):
-		return cls.verification == token
+	
+	def verify_token(self, token):
+		return self.verification == token
 
-	@classmethod
-	def load_users(cls):
-		users_response = cls.workspace_client.api_call('users.list',
-														scope=cls.oauth['scope'])
+	
+	def load_users(self):
+		users_response = self.workspace_client.api_call('users.list',
+														scope=self.oauth['scope'])
 
 		if not users_response['ok']:
 			print('Failed to load users')
@@ -80,7 +81,7 @@ class Bot(object):
 		should_continue = True
 		while should_continue:
 			next_users = users_response['members']
-			with cls.users_lock:
+			with self.users_lock:
 				for user in next_users:
 					user_id = user['id']
 					user_name = user['name']
@@ -89,15 +90,15 @@ class Bot(object):
 						user_info['display_name'] = user['profile']['display_name']
 					else:
 						user_info['display_name'] = user_name
-					Bot.users[user_id] = user_info
+					self.users[user_id] = user_info
 			if 'response_metadata' in users_response:
 				next_cursor = users_response['response_metadata']['next_cursor']
 
 				if not next_cursor:
 					should_continue = False
 				else:
-					users_response = cls.workspace_client.api_call('users.list',
-																	scope=cls.oauth['scope'],
+					users_response = self.workspace_client.api_call('users.list',
+																	scope=self.oauth['scope'],
 																	cursor=next_cursor)
 					should_continue = users_response['ok']
 			else:
@@ -112,47 +113,47 @@ class Bot(object):
 		else:
 			return False
 
-	@classmethod
-	def load_reacts(cls):
-		resp = cls.workspace_client.api_call('emoji.list')
+	
+	def load_reacts(self):
+		resp = self.workspace_client.api_call('emoji.list')
 		if resp['ok']:
-			with cls.reacts_lock:
-				cls.reacts_list = {react for react in resp['emoji'].keys()}
+			with self.reacts_lock:
+				self.reacts_list = {react for react in resp['emoji'].keys()}
 		else:
 			print('Failed to load reacts')
 			print(resp)
 
-	@classmethod
-	def send_dm(cls, user_id, message):
-		new_dm = cls.bot_client.api_call('im.open',
+	
+	def send_dm(self, user_id, message):
+		new_dm = self.bot_client.api_call('im.open',
 										  user=user_id)
 
 		if not new_dm['ok']:
 			return False
 
 		channel_id = new_dm['channel']['id']
-		post_msg = cls.bot_client.api_call('chat.postMessage',
+		post_msg = self.bot_client.api_call('chat.postMessage',
 											channel=channel_id,
-											username=cls.name,
+											username=self.name,
 											text=message)
 		return post_msg['ok']
 
-	@classmethod
-	def auth(cls, code):
-		response = cls.bot_client.api_call('oauth.access',
-											client_id=cls.oauth['client_id'],
-											client_secret=cls.oauth['client_secret'],
+	
+	def auth(self, code):
+		response = self.bot_client.api_call('oauth.access',
+											client_id=self.oauth['client_id'],
+											client_secret=self.oauth['client_secret'],
 											code=code)
 		if response['ok']:
 			team_id = response['team_id']
 			bot_token = response['bot']['bot_access_token']
-			cls.bot_client = SlackClient(bot_token)
+			self.bot_client = SlackClient(bot_token)
 
 
 
-	@classmethod
-	def auth_token(cls, token):
-		auth_response = cls.workspace_client.api_call('auth.test',
+	
+	def auth_token(self, token):
+		auth_response = self.workspace_client.api_call('auth.test',
 												 token=token)
 		return auth_response['ok']
 
@@ -160,17 +161,17 @@ class Bot(object):
 	EVENT HANDLERS
 	'''
 
-	@classmethod
-	def on_event(cls, event_type, slack_event):
-		print('bot.on_event')
+	
+	def on_event(self, event_type, slack_event):
+		print('self.on_event')
 		evnt = Event(event_type, slack_event)
 
-		cls.event_queue.put(evnt)
-		print(cls.event_queue.qsize())
-		#cls.handle_event(evnt)
+		self.event_queue.put(evnt)
+		print(self.event_queue.qsize())
+		#self.handle_event(evnt)
 
-	@classmethod
-	def handle_api_event(cls, event):
+	
+	def handle_api_event(self, event):
 		print('handle_api_event')
 		slack_event = event.event_info
 		event_type = slack_event['event']['type']
@@ -182,18 +183,18 @@ class Bot(object):
 
 
 		if event_type == 'reaction_added':
-			return cls.reaction_added(slack_event)
+			return self.reaction_added(slack_event)
 		elif event_type == 'reaction_removed':
 			print('removed')
-			return cls.reaction_removed(slack_event)
+			return self.reaction_removed(slack_event)
 		elif event_type == 'message':
 			print('onMessage')
-			return cls.message_posted(slack_event)
+			return self.message_posted(slack_event)
 		elif event_type == 'message_deleted':
-			return cls.message_removed(slack_event)
+			return self.message_removed(slack_event)
 
-	@classmethod
-	def message_removed(cls, slack_event):
+	
+	def message_removed(self, slack_event):
 		db.remove_message(Message('', slack_event['channel'], slack_event['ts'], '', ''))
 
 	@staticmethod
@@ -234,18 +235,18 @@ class Bot(object):
 
 
 
-	@classmethod
-	def handle_slash_command(cls, event):
+	
+	def handle_slash_command(self, event):
 		print('handle_slash_command')
 		event = event.event_info
 		token = event['token']
 
-		if not cls.auth_token(token):
+		if not self.auth_token(token):
 			logging.getLogger(__name__).warning('Not authed')
 			return
 
-		if not Bot.users:
-			Bot.load_users()
+		if not self.users:
+			self.load_users()
 
 
 		text = event['text'].split(' ')
@@ -257,43 +258,43 @@ class Bot(object):
 			args = ' '.join(text[1:])
 		try:
 			if command == MOST_USED_REACTS:
-				response = cls.most_used_reacts(args)
+				response = self.most_used_reacts(args)
 			elif command == MOST_REACTED_TO_MESSAGES:
-				response = cls.most_reacted_to_message(args)
+				response = self.most_reacted_to_message(args)
 			elif command == MOST_UNIQUE_REACTS_ON_POST:
-				response = cls.most_unique_reacts_on_post(args)
+				response = self.most_unique_reacts_on_post(args)
 			elif command == REACT_BUZZWORDS:
-				response = cls.react_buzzwords(args)
+				response = self.react_buzzwords(args)
 			elif command == MOST_REACTS:
-				response = cls.most_reacts(args)
+				response = self.most_reacts(args)
 			elif command == COMMON_PHRASES:
-				response = cls.common_phrases()
+				response = self.common_phrases()
 			elif command == MOST_ACTIVE:
-				response = cls.most_active()
+				response = self.most_active()
 		except Exception as e:
-			cls.send_dm(user_id, 'There was an error processing your request')
+			self.send_dm(user_id, 'There was an error processing your request')
 			raise e
 
-		cls.send_dm(user_id, response)
+		self.send_dm(user_id, response)
 
-	@classmethod
-	def user_exists(cls, user):
-		if user in Bot.users:
+	
+	def user_exists(self, user):
+		if user in self.users:
 			return True
 		else:
-			cls.load_users()
-			return user in Bot.users
+			self.load_users()
+			return user in self.users
 
-	@classmethod
-	def common_phrases(cls):
+	
+	def common_phrases(self):
 		phrases = analytics.get_common_phrases()
 		result_str = ['Common Phrases:\n']
 		for p in phrases:
 			result_str.append(' '.join(p[0]) + '\n')
 		return ''.join(result_str)
 
-	@classmethod
-	def most_reacted_to_message(cls, text):
+	
+	def most_reacted_to_message(self, text):
 		re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
 		result_str = []
 		if not re_object:
@@ -301,7 +302,7 @@ class Bot(object):
 			msgs = analytics.most_reacted_to_posts()
 		else:
 			user_id = re_object.group(0)
-			result_str.append('Most reacted to posts for ' + cls.users[user_id] + ':\n')
+			result_str.append('Most reacted to posts for ' + self.users[user_id] + ':\n')
 			msgs = analytics.most_reacted_to_posts(re_object.group(0))
 
 		for msg, count in msgs.items():
@@ -309,32 +310,32 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	@classmethod
-	def most_reacts(cls, args):
+	
+	def most_reacts(self, args):
 		user_reacts = analytics.users_with_most_reacts()
 		user_re = re.compile('(?<=\@)(.*?)(?=\|)')
 
 		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
-			if cls.user_exists(user):
+			if self.user_exists(user):
 				result_str.append('<@' + user + '>: ' + str(count) + '\n')
 			else:
 				print(user + 'not in users dictionary')
 		return ''.join(result_str)
 
-	@classmethod
-	def most_active(cls):
+	
+	def most_active(self):
 		most_active = analytics.most_active()
 		result_str = ['Most active users:\n']
 		for user in most_active:
-			if cls.user_exists(user):
+			if self.user_exists(user):
 				result_str.append('<@' + user + '>\n')
 			else:
 				print(str(user) + 'not in users dictionary')
 		return ''.join(result_str)
 
-	@classmethod
-	def most_used_reacts(cls, text):
+	
+	def most_used_reacts(self, text):
 		user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
 		if not user_id:
 			result = analytics.most_used_reacts()
@@ -349,8 +350,8 @@ class Bot(object):
 			result_str.append(' : ' + str(r[1]) + '\n')
 		return ''.join(result_str)
 
-	@classmethod
-	def most_unique_reacts_on_post(cls, text):
+	
+	def most_unique_reacts_on_post(self, text):
 		channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
 		result_str = ['Messages with most unique reacts:\n']
 		if not channel_id:
@@ -366,8 +367,8 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	@classmethod
-	def react_buzzwords(cls, text):
+	
+	def react_buzzwords(self, text):
 
 		if not text.strip():
 			return 'specify at least one react'
@@ -381,7 +382,7 @@ class Bot(object):
 		try:
 			for r in reacts:
 				result_str.append(':'+r + ':: ')
-				react_buzzwords = analytics.react_buzzword(r, Bot.users, Bot.channels, 10)
+				react_buzzwords = analytics.react_buzzword(r, self.users, self.channels, 10)
 
 				if react_buzzwords:
 					result_str.append(', '.join([word for word in react_buzzwords.keys()]) + '\n')
@@ -394,21 +395,21 @@ class Bot(object):
 
 		return ''.join(result_str)
 
-	@classmethod
-	def event_handler_loop(cls):
+	
+	def event_handler_loop(self):
 		print('start event loop')
 		while True:
-			while not cls.event_queue.empty():
-				event = Bot.event_queue.get()
-				cls.handle_event(event)
+			while not self.event_queue.empty():
+				event = self.event_queue.get()
+				self.handle_event(event)
 			sleep(1)
 
-	@classmethod
-	def handle_event(cls, event):
+	
+	def handle_event(self, event):
 		if event.type == EVENT_TYPE_API_EVENT:
-			cls.handle_api_event(event)
+			self.handle_api_event(event)
 		elif event.type == EVENT_TYPE_SLASH_COMMAND:
-			cls.handle_slash_command(event)
+			self.handle_slash_command(event)
 
 class Event(object):
 	def __init__(self, event_type, event_info):
