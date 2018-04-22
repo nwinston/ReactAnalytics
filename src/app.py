@@ -1,8 +1,7 @@
 from flask import Flask, request, make_response, render_template, abort
-from bot import VALID_COMMANDS, EVENT_TYPE_SLASH_COMMAND, EVENT_TYPE_API_EVENT
+from bot import VALID_COMMANDS, EVENT_TYPE_SLASH_COMMAND, EVENT_TYPE_API_EVENT, Bot
 import log
 from celery import Celery
-from tasks import queue_bot_event
 import os
 
 app = Flask(__name__)
@@ -21,7 +20,20 @@ def make_celery(app):
     celery.Task = ContextTask
     return celery
 
+pyBot = Bot()
 celery = make_celery(app)
+
+
+@celery.task
+def queue_bot_event(token, event_type, event):
+    print('queue_bot_event')
+    if pyBot.verify_token(token):
+        pyBot.on_event(event_type, event)
+        return True
+    else:
+        return False
+
+
 
 
 @app.route("/install", methods=['GET'])
