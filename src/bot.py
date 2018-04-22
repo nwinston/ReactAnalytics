@@ -282,7 +282,7 @@ class Bot(object):
 		print(phrases)
 		result_str = ['Common Phrases:\n']
 		for p in phrases:
-			result_str.append(' '.join(p[0]) + '\n')
+			result_str.append(' '.join(p) + '\n')
 		return ''.join(result_str)
 
 	
