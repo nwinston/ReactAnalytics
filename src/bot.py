@@ -34,8 +34,6 @@ TIMER_INTERVAL = 2
 
 authed_teams = {}
 class Bot(object):
-
-
 	def __init__(self):
 		self.oauth = {"client_id": os.environ.get("CLIENT_ID"),
 				 "client_secret": os.environ.get("CLIENT_SECRET"),
@@ -163,12 +161,8 @@ class Bot(object):
 
 	
 	def on_event(self, event_type, slack_event):
-		print('self.on_event')
 		evnt = Event(event_type, slack_event)
-
 		self.event_queue.put(evnt)
-		print(self.event_queue.qsize())
-		#self.handle_event(evnt)
 
 	
 	def handle_api_event(self, event):
