@@ -1,7 +1,7 @@
 import celery
 from bot import Bot
 
-pyBot = Bot()
+pyBot = None
 
 @celery.task
 def queue_bot_event(token, event_type, event):
@@ -10,3 +10,6 @@ def queue_bot_event(token, event_type, event):
         return True
     else:
         return False
+
+if __name__ == '__main__':
+    pyBot = Bot()
