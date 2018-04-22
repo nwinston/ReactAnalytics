@@ -1,12 +1,11 @@
 from functools import reduce
 from itertools import islice
-from collections import defaultdict, OrderedDict, Counter
+from collections import defaultdict, Counter
 import operator
 import re
 import db
 import os
 from nltk.util import ngrams
-from nltk import word_tokenize, sent_tokenize, TweetTokenizer #doesn't split contractions
 import string
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
@@ -141,9 +140,9 @@ def reacts_to_words(users, channels, count=5):
 
 #Given a condition return the first count number
 #of elements in counter that satisfies the condition
-def conditional_generator(condition=None):
+def get_top(condition=None):
 	def gen_react_count(f):
-		def wrapper(user_id=None, count=5):
+		def wrapper(*args, **kwargs):
 
 			# helper function
 			def gen(counter):
@@ -151,14 +150,14 @@ def conditional_generator(condition=None):
 					if condition and condition(k):
 						yield (k, counter[k])
 
-			sliced = islice(gen(f(user_id, count)), 5)
+			sliced = islice(gen(f(*args, **kwargs)), 5)
 			sliced = dict((v[0], v[1]) for v in sliced)
 			return sliced
 
 		return wrapper
 	return gen_react_count
 
-@conditional_generator(lambda id : bool(db.get_message_text('', id)))
+@get_top(lambda id : bool(db.get_message_text('', id)))
 def most_reacted_to_posts(user_id=None, count=5):
 	if user_id:
 		ids = db.get_messages_by_user(user_id)
@@ -179,6 +178,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 	return react_count
 
+@get_top()
 def get_common_phrases():
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
@@ -189,7 +189,7 @@ def get_common_phrases():
 		for phrase in ngrams(words, 3):
 			if all(word not in string.punctuation for word in phrase):
 				phrase_counter[phrase] += 1
-	return phrase_counter.most_common(10)
+	return phrase_counter
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
