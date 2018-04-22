@@ -1,2 +1,2 @@
 web: gunicorn --chdir src app:app
-worker: celery -A src\tasks worker --loglevel=info
+worker: celery --workdir src -A tasks worker --loglevel=info
