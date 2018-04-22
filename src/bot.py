@@ -403,9 +403,9 @@ class Bot(object):
 
 	@classmethod
 	def handle_event(cls, event):
-		if event.type == EventType.API_EVENT:
+		if event.type == EVENT_TYPE_API_EVENT:
 			cls.handle_api_event(event)
-		elif event.type == EventType.SLASH_COMMAND:
+		elif event.type == EVENT_TYPE_SLASH_COMMAND:
 			cls.handle_slash_command(event)
 
 class Event(object):
@@ -413,6 +413,5 @@ class Event(object):
 		self.type = event_type
 		self.event_info = event_info
 
-class EventType(Enum):
-	SLASH_COMMAND = 'EVENTTYPE_SLASHCOMMAND'
-	API_EVENT = 'EVENTTYPE_APIEVENT'
+EVENT_TYPE_SLASH_COMMAND = 0
+EVENT_TYPE_API_EVENT = 1

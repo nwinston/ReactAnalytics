@@ -1,5 +1,5 @@
 from flask import Flask, request, make_response, render_template, abort
-from bot import VALID_COMMANDS, EventType
+from bot import VALID_COMMANDS, EVENT_TYPE_SLASH_COMMAND, EVENT_TYPE_API_EVENT
 import log
 from celery import Celery
 from tasks import queue_bot_event
@@ -37,7 +37,7 @@ def hears():
         })
 
     if 'event' in slack_event:
-        task = queue_bot_event.delay(slack_event.get('token'), EventType.API_EVENT, slack_event)
+        task = queue_bot_event.delay(slack_event.get('token'), EVENT_TYPE_API_EVENT, slack_event)
         if not task:
             message = "Invalid Slack verification token"
             # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
@@ -60,7 +60,7 @@ def on_slash_command():
     if text.lower().strip() == 'help':
         return make_response(get_help_response(), 200)
     if text.split(' ')[0] in VALID_COMMANDS:
-        task = queue_bot_event.delay(slash_command['token'],EventType.SLASH_COMMAND, slash_command)
+        task = queue_bot_event.delay(slash_command['token'], EVENT_TYPE_SLASH_COMMAND, slash_command)
         if not task:
             response_text = 'Invalid token'
         else:
