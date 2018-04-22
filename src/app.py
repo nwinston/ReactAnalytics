@@ -26,6 +26,10 @@ celery = make_celery(app)
 
 @celery.task
 def queue_bot_event(token, event_type, event):
+    if event_type == EVENT_TYPE_SLASH_COMMAND:
+        user = event['event']['user']
+        pyBot.send_dm(user, 'event_received')
+
     print('queue_bot_event')
     if pyBot.verify_token(token):
         pyBot.on_event(event_type, event)
