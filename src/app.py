@@ -26,10 +26,6 @@ celery = make_celery(app)
 
 @celery.task
 def queue_bot_event(token, event_type, event):
-    if event_type == EVENT_TYPE_SLASH_COMMAND:
-        user = event['event']['user']
-        pyBot.send_dm(user, 'event_received')
-
     print('queue_bot_event')
     if pyBot.verify_token(token):
         pyBot.on_event(event_type, event)
@@ -66,6 +62,7 @@ def hears():
 
     if 'event' in slack_event:
         task = queue_bot_event.delay(slack_event.get('token'), EVENT_TYPE_API_EVENT, slack_event)
+        task.wait()
         if not task:
             message = "Invalid Slack verification token"
             # By adding "X-Slack-No-Retry" : 1 to our response headers, we turn off
@@ -89,6 +86,7 @@ def on_slash_command():
         return make_response(get_help_response(), 200)
     if text.split(' ')[0] in VALID_COMMANDS:
         task = queue_bot_event.delay(slash_command['token'], EVENT_TYPE_SLASH_COMMAND, slash_command)
+        task.wait()
         if not task:
             response_text = 'Invalid token'
         else:
