@@ -1,16 +1,16 @@
 import os
-import sys
 from multiprocessing import Queue
 from multiprocessing import Process, Lock
 import re
 from slackclient import SlackClient
 import analytics
-from enum import Enum
 import logging
-from infinitetimer import InfiniteTimer
-from util import React, Message, msg_id_string
+from util import React, Message
 import db
 from time import sleep
+
+EVENT_TYPE_SLASH_COMMAND = 0
+EVENT_TYPE_API_EVENT = 1
 
 MOST_USED_REACTS = 'most_used'
 MOST_REACTED_TO_MESSAGES = 'most_reacted_to'
@@ -179,10 +179,8 @@ class Bot(object):
 		if event_type == 'reaction_added':
 			return self.reaction_added(slack_event)
 		elif event_type == 'reaction_removed':
-			print('removed')
 			return self.reaction_removed(slack_event)
 		elif event_type == 'message':
-			print('onMessage')
 			return self.message_posted(slack_event)
 		elif event_type == 'message_deleted':
 			return self.message_removed(slack_event)
@@ -193,7 +191,6 @@ class Bot(object):
 
 	@staticmethod
 	def reaction_added(slack_event):
-		print('reaction_added')
 		event = slack_event['event']
 		react_name = event['reaction']
 		user_id = event['user']
@@ -231,7 +228,6 @@ class Bot(object):
 
 	
 	def handle_slash_command(self, event):
-		print('handle_slash_command')
 		event = event.event_info
 		token = event['token']
 
@@ -247,6 +243,7 @@ class Bot(object):
 		user_id = event['user_id']
 		command = text[0]
 		args = ""
+
 		#check if there are any args
 		if len(text) > 1:
 			args = ' '.join(text[1:])
@@ -307,7 +304,6 @@ class Bot(object):
 	
 	def most_reacts(self, args):
 		user_reacts = analytics.users_with_most_reacts()
-		user_re = re.compile('(?<=\@)(.*?)(?=\|)')
 
 		result_str = ['Users that react the most\n']
 		for user, count in user_reacts.items():
@@ -372,7 +368,6 @@ class Bot(object):
 		reacts = re.findall('(?<=:)(.*?)(?=:)', text)
 		reacts = {r for r in reacts if r.strip(' ')}
 
-
 		try:
 			for r in reacts:
 				result_str.append(':'+r + ':: ')
@@ -409,6 +404,3 @@ class Event(object):
 	def __init__(self, event_type, event_info):
 		self.type = event_type
 		self.event_info = event_info
-
-EVENT_TYPE_SLASH_COMMAND = 0
-EVENT_TYPE_API_EVENT = 1

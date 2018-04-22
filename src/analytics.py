@@ -8,7 +8,6 @@ import os
 from nltk.util import ngrams
 from nltk import word_tokenize, sent_tokenize, TweetTokenizer #doesn't split contractions
 import string
-from contractions import expand_contractions
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
@@ -140,18 +139,22 @@ def reacts_to_words(users, channels, count=5):
 
 	return word_to_reacts
 
-def conditional_generator(condition):
+#Given a condition return the first count number
+#of elements in counter that satisfies the condition
+def conditional_generator(condition=None):
 	def gen_react_count(f):
 		def wrapper(user_id=None, count=5):
+
 			# helper function
 			def gen(counter):
 				for k in counter:
-					if condition(k):
+					if condition and condition(k):
 						yield (k, counter[k])
 
 			sliced = islice(gen(f(user_id, count)), 5)
 			sliced = dict((v[0], v[1]) for v in sliced)
 			return sliced
+
 		return wrapper
 	return gen_react_count
 
@@ -192,7 +195,6 @@ def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
 	reacts = {msg_id : reacts[msg_id] for msg_id in reacts}
 	top_by_val = get_top_by_value(reacts, count, lambda x: len(x[1]))
-	print(top_by_val)
 	return top_by_val
 
 def users_with_most_reacts(count=5):
