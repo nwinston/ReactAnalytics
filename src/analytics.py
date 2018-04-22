@@ -156,7 +156,7 @@ def get_top(condition=None):
 							continue
 
 
-			sliced = islice(gen(f(*args, **kwargs)))
+			sliced = islice(gen(f(*args, **kwargs)), None)
 			sliced = dict((v[0], v[1]) for v in sliced)
 			return sliced
 
