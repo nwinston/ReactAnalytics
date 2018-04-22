@@ -185,7 +185,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 	return react_count
 
 @get_top()
-def get_common_phrases():
+def get_common_phrases(count=10):
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
@@ -195,7 +195,7 @@ def get_common_phrases():
 		for phrase in ngrams(words, 3):
 			if all(word not in string.punctuation for word in phrase):
 				phrase_counter[phrase] += 1
-	return phrase_counter
+	return dict(phrase_counter.most_common())
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
