@@ -156,7 +156,7 @@ def get_top(condition=None):
 							continue
 
 
-			sliced = islice(gen(f(*args, **kwargs)), 5)
+			sliced = islice(gen(f(*args, **kwargs)))
 			sliced = dict((v[0], v[1]) for v in sliced)
 			return sliced
 
@@ -180,7 +180,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 		count = reduce(lambda x, y: reacts[x] + y, reacts, 0)
 		react_count[msg_id] = count
 	'''
-	react_count = dict(react_count.most_common())
+	react_count = dict(react_count.most_common(count))
 
 	return react_count
 
@@ -195,7 +195,7 @@ def get_common_phrases(count=10):
 		for phrase in ngrams(words, 3):
 			if all(word not in string.punctuation for word in phrase):
 				phrase_counter[phrase] += 1
-	return dict(phrase_counter.most_common())
+	return dict(phrase_counter.most_common(count))
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
