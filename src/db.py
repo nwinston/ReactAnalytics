@@ -2,113 +2,95 @@ import traceback
 import os
 import psycopg2
 import log
+from functools import wraps
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-def remove_message(msg):
-    query = 'DELETE FROM MESSAGES WHERE MessageID = %s'
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute(query, (msg.msg_id))
-    conn.commit()
-    conn.close()
+def get_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode='require')
 
+def psycopg2_cur(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            ret_val = func(cursor, *args, **kwargs)
+        finally:
+            conn.commit()
+            conn.close()
+        return ret_val
+    return wrapper
+
+
+@psycopg2_cur
+def remove_message(cursor, msg):
+    query = 'DELETE FROM MESSAGES WHERE MessageID = %s'
+    cursor.execute(query, (msg.msg_id))
+
+@psycopg2_cur
 # msgs = (msg_id, team_id, user_id, text)
-def add_messages(msgs):
-    log.log_info('add_messages')
-    '''
-    try:
-        c.executemany('INSERT INTO Messages VALUES(%s, %s, %s);', msgs)
-    except Exception as e:
-        print(e)
-        print(traceback.print_exc())
-    '''
-    conn = get_connection()
-    c = conn.cursor()
+def add_messages(cursor, msgs):
     for m in msgs:
         if not msg_exists(m.msg_id):
             try:
                 msg_tuple = (m.msg_id, m.team_id, m.user_id, m.text)
-                c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', msg_tuple)
+                cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', msg_tuple)
             except Exception as e:
                 log.log_error(e.message)
-    conn.commit()
-    conn.close()
 
 
-
-def add_message(msg, conn=None):
-    print('add_message')
-    log.log_info('add_message')
-    close = (conn is None)
-
-    if not conn:
-        conn = get_connection()
-    c = conn.cursor()
-
+@psycopg2_cur
+def add_message(cursor, msg, conn=None):
     try:
-        c.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', (msg.msg_id, msg.team_id, msg.user_id, msg.text))
+        cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', (msg.msg_id, msg.team_id, msg.user_id, msg.text))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
-    conn.commit()
-    if close:
-        conn.close()
 
-
+@psycopg2_cur
 # msgs = (msg_id, team_id, user_id, react_name)
-def add_reacts(reacts):
+def add_reacts(cursor, reacts):
     log.log_info('add_reacts')
-    conn = get_connection()
     for react in reacts:
-        _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
-    conn.commit()
-    conn.close()
+        _add_react(cursor, react.msg_id, react.team_id, react.user_id, react.react_name)
 
-def add_react(react):
-    print('add_react')
-    log.log_info('add_react')
-    conn = get_connection()
-    _add_react(conn, react.msg_id, react.team_id, react.user_id, react.react_name)
-    conn.commit()
-    conn.close()
+@psycopg2_cur
+def add_react(cursor, react):
+    _add_react(cursor, react.msg_id, react.team_id, react.user_id, react.react_name)
 
 
-def _add_react(conn, msg_id, team_id, user_id, react_name):
-    log.log_info('_add_react')
-    c = conn.cursor()
+def _add_react(cursor, msg_id, team_id, user_id, react_name):
     try:
-        if _exists_in_message_reacts(conn, msg_id, react_name):
+        if _exists_in_message_reacts(cursor, msg_id, react_name):
 
             query = ('''UPDATE MessageReacts
                     SET Count = Count + 1
                     WHERE MessageReacts.MessageID = %s
                     AND MessageReacts.ReactName = %s''')
-            c.execute(query, (msg_id, react_name))
+            cursor.execute(query, (msg_id, react_name))
         else:
-            c.execute('INSERT INTO MessageReacts VALUES(%s, %s, 1);',(msg_id, react_name))
+            cursor.execute('INSERT INTO MessageReacts VALUES(%s, %s, 1);',(msg_id, react_name))
 
 
-        if _exists_in_user_reacts(conn, user_id, react_name):
-            c.execute('''UPDATE UserReacts
+        if _exists_in_user_reacts(cursor, user_id, react_name):
+            cursor.execute('''UPDATE UserReacts
                     SET Count = Count + 1
                     WHERE UserReacts.UserID = %s
                     AND UserReacts.TeamID = %s
                     AND UserReacts.ReactName = %s''',
                       (user_id, team_id, react_name))
         else:
-            c.execute('INSERT INTO UserReacts VALUES(%s, %s, %s, 1);',(user_id, team_id, react_name))
+            cursor.execute('INSERT INTO UserReacts VALUES(%s, %s, %s, 1);',(user_id, team_id, react_name))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
-
-def remove_react(react):
+@psycopg2_cur
+def remove_react(cursor, react):
     log.log_info('remove_react')
-    conn = get_connection()
-    c = conn.cursor()
 
     try:
-        c.execute('''UPDATE MessageReacts
+        cursor.execute('''UPDATE MessageReacts
                 SET Count = Count - 1
                 WHERE MessageReacts.MessageID = %s
                 AND MessageReacts.ReactName = %s''', (react.msg_id, react.react_name))
@@ -117,7 +99,7 @@ def remove_react(react):
         print(traceback.print_exc())
 
     try:
-        c.execute('''
+        cursor.execute('''
               UPDATE UserReacts
               SET Count = Count - 1
               WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s''', (react.user_id, react.react_name))
@@ -125,112 +107,79 @@ def remove_react(react):
         print(e)
         print(traceback.print_exc())
 
-    conn.commit()
-    conn.close()
 
-
-def _exists_in_message_reacts(conn, msg_id, react_name):
-    c = conn.cursor()
-    c.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
+def _exists_in_message_reacts(cursor, msg_id, react_name):
+    cursor.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
                        (msg_id, react_name))
-    result = c.fetchone()
+    result = cursor.fetchone()
     if not result:
         return False
     return True
 
 
-def _exists_in_user_reacts(conn, user_id, react_name):
-    c = conn.cursor()
-    c.execute(
+def _exists_in_user_reacts(cursor, user_id, react_name):
+    cursor.execute(
         "SELECT * FROM UserReacts WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s",
         (user_id, react_name))
-    result = c.fetchone()
+    result = cursor.fetchone()
     if not result:
         return False
     return True
 
-def msg_exists(msg_id, conn = None):
-    close = (conn is None)
-    if conn is None:
-        conn = get_connection()
-    c = conn.cursor()
-    c.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
-    row = c.fetchone()
+@psycopg2_cur
+def msg_exists(cursor, msg_id, conn = None):
+    cursor.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
+    row = cursor.fetchone()
     exists = False
     if row:
         exists = True
-
-    print(exists)
-    if close:
-        conn.close()
-
     return exists
 
-
-def get_reacts_on_user(user_id):
+@psycopg2_cur
+def get_reacts_on_user(cursor, user_id):
     msgs = get_messages_by_user(user_id)
-    conn = get_connection()
-    c = conn.cursor()
     msgs = [(m,) for m in msgs]
 
-    c.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
-    row = c.fetchone()
+    cursor.executemany("SELECT ReactName, sum(MessageReacts.Count) FROM MessageReacts WHERE MessageID = %s GROUP BY ReactName", msgs)
+    row = cursor.fetchone()
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return reacts
 
-def get_reacts_by_user(user_id):
-    conn = get_connection()
-    c = conn.cursor()
+@psycopg2_cur
+def get_reacts_by_user(cursor, user_id):
 
-    c.execute(
+    cursor.execute(
         "SELECT UserReacts.ReactName, UserReacts.Count FROM UserReacts WHERE UserReacts.UserID = %s",(user_id, ))
-    row = c.fetchone()
+    row = cursor.fetchone()
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
         row = c.fetchone()
-    conn.close()
     return reacts
 
-def get_reacts_per_user():
-    conn = get_connection()
-    c = conn.cursor()
-    '''
-    subquery = """SELECT UserID, sum(Count) AS sum
-                  From UserReacts
-                  GROUP BY UserID
-                  """
-    '''
-    c.execute('SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID')
+@psycopg2_cur
+def get_reacts_per_user(cursor):
+    cursor.execute('SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID')
     users = {}
-    row = c.fetchone()
+    row = cursor.fetchone()
     while row:
         users[row[0]] = row[1]
-        row = c.fetchone()
+        row = cursor.fetchone()
     return users
 
-
-def get_reacts_on_message(msg_id, conn=None):
-    close = False
-    if not conn:
-        close = True
-        conn = get_connection()
-
-    c = conn.cursor()
-    c.execute(
+@psycopg2_cur
+def get_reacts_on_message(cursor, msg_id, conn=None):
+    cursor.execute(
         "SELECT ReactName, Count FROM MessageReacts WHERE MessageID = %s",(
             msg_id, ))
-    row = c.fetchone()
+    row = cursor.fetchone()
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
-        row = c.fetchone()
-    if close:
-        conn.close()
+        row = cursor.fetchone()
     return reacts
 
 def get_reacts_on_messages(msgs):
@@ -241,13 +190,10 @@ def get_reacts_on_messages(msgs):
     conn.close()
     return reacts
 
-
-def get_reacts_on_all_messages():
-    conn = get_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT MessageReacts.MessageID, MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
-    row = c.fetchone()
+@psycopg2_cur
+def get_reacts_on_all_messages(cursor):
+    cursor.execute("SELECT MessageReacts.MessageID, MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")
+    row = cursor.fetchone()
     reacts = {}
     while row:
         msg_id = row[0]
@@ -256,106 +202,83 @@ def get_reacts_on_all_messages():
         if msg_id not in reacts:
             reacts[msg_id] = {}
         reacts[msg_id][react_name] = count
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return reacts
 
-
-def get_messages_by_user(user_id):
-    conn = get_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
-    row = c.fetchone()
+@psycopg2_cur
+def get_messages_by_user(cursor, user_id):
+    cursor.execute("SELECT MessageID FROM Messages WHERE Messages.UserID = %s", (user_id,))
+    row = cursor.fetchone()
     msgs = []
     while row:
         msgs.append(row[0])
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return msgs
 
-def get_message_text(team_id, msg_id, conn=None):
-    print('get_msg_text')
+@psycopg2_cur
+def get_message_text(cursor, team_id, msg_id):
     query = "SELECT MessageText FROM Messages WHERE Messages.MessageID = %s"
-    close = False
-    if conn is None:
-        conn = get_connection()
-        close = True
-    c = conn.cursor()
-    c.execute(query, (msg_id, ))
-    result = c.fetchone()
+    cursor.execute(query, (msg_id, ))
+    result = cursor.fetchone()
     if not result:
         return ''
 
     text = result[0]
-    if close:
-        conn.close()
     return text
 
-def get_all_message_texts():
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute('SELECT MessageText from Messages')
-    row = c.fetchone()
+@psycopg2_cur
+def get_all_message_texts(cursor):
+    cursor.execute('SELECT MessageText from Messages')
+    row = cursor.fetchone()
     texts = []
     while row:
         texts.append(row[0])
-        row = c.fetchone()
-
-    conn.close()
+        row = cursor.fetchone()
     return texts
 
-def get_message_text_from_ids(msg_ids):
-    conn = get_connection()
-    result = {msg_id: get_message_text('', msg_id, conn) for msg_id in msg_ids}
-    conn.close()
+@psycopg2_cur
+def get_message_text_from_ids(cursor, msg_ids):
+    query = "SELECT MessageText FROM Messages WHERE Messages.MessageID = %s"
+    result = {}
+    for msg_id in msg_ids:
+        cursor.execute(query, (msg_id, ))
+        row = cursor.fetchone()
+        result[msg_id] = row[0]
     return result
 
-def get_message_ids():
-    conn = get_connection()
-    c = conn.cursor()
-
-    c.execute("SELECT MessageID FROM Messages")
-    row = c.fetchone()
+@psycopg2_cur
+def get_message_ids(cursor):
+    cursor.execute("SELECT MessageID FROM Messages")
+    row = cursor.fetchone()
     msg_ids = []
     while row:
         msg_ids.append(row[0])
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return msg_ids
 
-def get_react_counts():
-    conn = get_connection()
-    c = conn.cursor()
-
-    c.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
-    row = c.fetchone()
+@psycopg2_cur
+def get_react_counts(cursor):
+    cursor.execute('SELECT ReactName, sum(MessageReacts.Count) from MessageReacts GROUP BY ReactName')
+    row = cursor.fetchone()
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return reacts
 
-def get_react_count(react_name):
-
-    conn = get_connection()
-    c = conn.cursor()
+@psycopg2_cur
+def get_react_count(cursor, react_name):
     query = 'SELECT sum(MessageReacts.Count) FROM MessageReacts WHERE ReactName = %s'
-    c.execute(query, (react_name, ))
-    row = c.fetchone()
+    cursor.execute(query, (react_name, ))
+    row = cursor.fetchone()
     count = []
     while row:
         count.append(row[0])
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return count
 
-
-def get_messages_with_react(react_name, text=False):
-    conn = get_connection()
-    c = conn.cursor()
-
+@psycopg2_cur
+def get_messages_with_react(cursor, react_name, text=False):
     if text:
         query = '''
                   SELECT MessageText FROM Messages
@@ -366,51 +289,42 @@ def get_messages_with_react(react_name, text=False):
         query = "SELECT MessageID FROM MessageReacts WHERE ReactName = %s AND Count > 0"
 
 
-    c.execute(query, (react_name, ))
-    row = c.fetchone()
+    cursor.execute(query, (react_name, ))
+    row = cursor.fetchone()
     msgs = []
     while row:
         msgs.append(row[0])
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return msgs
 
-def get_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode='require')
 
-def get_message_table():
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute('SELECT * FROM Messages')
-    row = c.fetchone()
+@psycopg2_cur
+def get_message_table(cursor):
+    cursor.execute('SELECT * FROM Messages')
+    row = cursor.fetchone()
     msgs = []
     while row:
         msgs.append(row)
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return msgs
 
-def get_user_reacts_table():
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute('SELECT * FROM UserReacts')
-    row = c.fetchone()
+@psycopg2_cur
+def get_user_reacts_table(cursor):
+    cursor.execute('SELECT * FROM UserReacts')
+    row = cursor.fetchone()
     reacts = []
     while row:
         reacts.append(row)
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return reacts
 
-def execute(query, args):
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute(query, args)
+@psycopg2_cur
+def execute(cursor, query, args):
+    cursor.execute(query, args)
     result = []
-    row = c.fetchone()
+    row = cursor.fetchone()
     while row:
         result.append(row)
-        row = c.fetchone()
-    conn.close()
+        row = cursor.fetchone()
     return result
 
