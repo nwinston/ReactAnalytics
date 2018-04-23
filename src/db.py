@@ -29,7 +29,6 @@ def remove_message(cursor, msg):
     cursor.execute(query, (msg.msg_id))
 
 @psycopg2_cur
-# msgs = (msg_id, team_id, user_id, text)
 def add_messages(cursor, msgs):
     for m in msgs:
         if not msg_exists(m.msg_id):
@@ -41,7 +40,7 @@ def add_messages(cursor, msgs):
 
 
 @psycopg2_cur
-def add_message(cursor, msg, conn=None):
+def add_message(cursor, msg):
     try:
         cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);', (msg.msg_id, msg.team_id, msg.user_id, msg.text))
     except Exception as e:
@@ -49,7 +48,6 @@ def add_message(cursor, msg, conn=None):
         print(traceback.print_exc())
 
 @psycopg2_cur
-# msgs = (msg_id, team_id, user_id, react_name)
 def add_reacts(cursor, reacts):
     log.log_info('add_reacts')
     for react in reacts:
@@ -85,6 +83,7 @@ def _add_react(cursor, msg_id, team_id, user_id, react_name):
     except Exception as e:
         print(e)
         print(traceback.print_exc())
+
 @psycopg2_cur
 def remove_react(cursor, react):
     log.log_info('remove_react')
@@ -127,7 +126,7 @@ def _exists_in_user_reacts(cursor, user_id, react_name):
     return True
 
 @psycopg2_cur
-def msg_exists(cursor, msg_id, conn = None):
+def msg_exists(cursor, msg_id):
     cursor.execute('SELECT * FROM Messages WHERE MessageID = %s', (msg_id,))
     row = cursor.fetchone()
     exists = False
