@@ -128,11 +128,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 	msgs = db.execute("SELECT MessageID, SUM(Count) FROM MessageReacts WHERE MessageID IN %s GROUP BY MessageID", (tuple(ids), ))
 	for msg in msgs:
 		react_count[msg[0]] = msg[1]
-	'''
-	for msg_id, reacts in reacts_on_messages.items():
-		count = reduce(lambda x, y: reacts[x] + y, reacts, 0)
-		react_count[msg_id] = count
-	'''
+
 	react_count = dict(react_count.most_common(count))
 
 	return react_count
