@@ -181,14 +181,6 @@ def get_reacts_on_message(cursor, msg_id, conn=None):
         row = cursor.fetchone()
     return reacts
 
-def get_reacts_on_messages(msgs):
-    conn = get_connection()
-    reacts = {}
-    for msg in msgs:
-        reacts[msg] = get_reacts_on_message(msg, conn)
-    conn.close()
-    return reacts
-
 @psycopg2_cur
 def get_reacts_on_all_messages(cursor):
     cursor.execute("SELECT MessageReacts.MessageID, MessageReacts.ReactName, MessageReacts.Count FROM MessageReacts")

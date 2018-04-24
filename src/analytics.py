@@ -14,11 +14,14 @@ stop_words = set(line.strip() for line in open(stop_words_file))
 stop_words.add('')
 
 punc = string.punctuation
+# Not sure what codec these two characters are from
+# but they are different than the quotes found in
+# string.punctuation and are not being removed
 punc += '”'
 punc += '“'
 
-#nltk.download()
-
+# Messages we don't want used in the common_phrases method
+# because they're posted by slack
 omit_phrases = ['joined the channel', 'left the channel', 'pinned a message', 'uploaded a file']
 
 def most_used_reacts(count=5):
