@@ -1,3 +1,6 @@
+# Byte-compiled
+__pycache__/
+
 # ignore .idea settings
 .idea/
 
