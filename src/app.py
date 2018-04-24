@@ -66,7 +66,7 @@ def hears():
 
 
 def get_help_response():
-    formatted_resp = ['%s %s\n' % (cmd, arg_list) for cmd, arg_list in VALID_COMMANDS.items()]
+    formatted_resp = ''.join(['%s %s\n' % (cmd, arg_list) for cmd, arg_list in VALID_COMMANDS.items()])
     return formatted_resp
 
 @app.route('/react_analytics', methods=['GET', 'POST'])
