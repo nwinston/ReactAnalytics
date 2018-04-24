@@ -26,7 +26,7 @@ def psycopg2_cur(func):
 @psycopg2_cur
 def remove_message(cursor, msg):
     query = 'DELETE FROM MESSAGES WHERE MessageID = %s'
-    cursor.execute(query, (msg.msg_id))
+    cursor.execute(query, (msg.msg_id,))
 
 @psycopg2_cur
 def add_messages(cursor, msgs):

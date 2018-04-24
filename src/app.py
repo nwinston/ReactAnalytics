@@ -26,13 +26,7 @@ celery = make_celery(app)
 
 @celery.task
 def queue_bot_event(token, event_type, event):
-    if pyBot.verify_token(token):
-        pyBot.on_event(event_type, event)
-        return True
-    else:
-        return False
-
-
+    return pyBot.on_event(token, event_type, event)
 
 
 @app.route("/install", methods=['GET'])
@@ -85,7 +79,6 @@ def on_slash_command():
         return make_response(get_help_response(), 200)
     if text.split(' ')[0] in VALID_COMMANDS:
         task = queue_bot_event.apply(args=(slash_command['token'], EVENT_TYPE_SLASH_COMMAND, slash_command))
-        print('waiting...')
         task.wait()
         if not task:
             response_text = 'Invalid token'

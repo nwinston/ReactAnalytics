@@ -160,9 +160,12 @@ class Bot(object):
 	'''
 
 	
-	def on_event(self, event_type, slack_event):
-		evnt = Event(event_type, slack_event)
-		self.event_queue.put(evnt)
+	def on_event(self, token, event_type, slack_event):
+		if self.verify_token(token):
+			evnt = Event(event_type, slack_event)
+			self.event_queue.put(evnt)
+		else:
+			return False
 
 	
 	def handle_api_event(self, event):
@@ -210,7 +213,6 @@ class Bot(object):
 
 	@staticmethod
 	def message_posted(slack_event):
-		print('message_posted')
 		try:
 			event = slack_event['event']
 			channel_id = event['channel']
