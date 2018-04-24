@@ -2,9 +2,7 @@
 __pycache__/**
 
 # ignore .idea settings
-.idea/workspace.xml
-.idea/misc.xml
-.idea/ReactAnalytics.iml
+.idea/
 
 #ignore virtualenv
-env/**
+env/
