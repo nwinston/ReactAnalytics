@@ -1,8 +1,8 @@
 # Byte-compiled
-__pycache__/
+__pycache__/**
 
 # ignore .idea settings
-.idea/
+.idea/**
 
 #ignore virtualenv
-env/
+env/**
