@@ -135,7 +135,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 	return react_count
 
 @time_it
-def get_common_phrases(count=10):
+def get_common_phrases(count=20):
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
