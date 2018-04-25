@@ -6,6 +6,7 @@ import db
 import os
 from nltk.util import ngrams
 import string
+from util import time_it
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
@@ -133,6 +134,7 @@ def most_reacted_to_posts(user_id=None, count=5):
 
 	return react_count
 
+@time_it
 def get_common_phrases(count=10):
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()

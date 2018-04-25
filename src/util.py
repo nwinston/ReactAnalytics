@@ -15,4 +15,14 @@ class Message:
         self.user_id = user_id
         self.text = text
 
-
+def time_it(func):
+    from functools import wraps
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        import time
+        start = time.time()
+        func(*args, **kwargs)
+        end = time.time()
+        duration = end - start
+        print('Time elapsed for ' + str(func.__name__) + ' : ' + str(duration) + ' seconds')
+    return wrapper
