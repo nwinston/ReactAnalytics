@@ -139,7 +139,6 @@ def get_common_phrases(count=10):
 	phrase_counter = Counter()
 	texts = db.get_all_message_texts()
 	for msg in texts:
-		print(msg)
 		if any(omit in msg for omit in omit_phrases):
 			continue
 		words = msg.split(' ')
