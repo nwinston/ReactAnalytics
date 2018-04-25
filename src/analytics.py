@@ -147,7 +147,7 @@ def get_common_phrases(count=10):
 				phrase_counter[phrase] += 1
 	ret_val = dict(phrase_counter.most_common(count))
 	print(ret_val)
-	return dict(phrase_counter.most_common(count))
+	return ret_val
 
 def most_unique_reacts_on_a_post(count=5):
 	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
