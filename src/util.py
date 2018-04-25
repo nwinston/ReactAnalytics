@@ -21,8 +21,9 @@ def time_it(func):
     def wrapper(*args, **kwargs):
         import time
         start = time.time()
-        func(*args, **kwargs)
+        ret_val = func(*args, **kwargs)
         end = time.time()
         duration = end - start
         print('Time elapsed for ' + str(func.__name__) + ' : ' + str(duration) + ' seconds')
+        return ret_val
     return wrapper
