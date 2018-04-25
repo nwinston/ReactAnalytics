@@ -146,6 +146,8 @@ def get_common_phrases(count=10):
 		for phrase in ngrams(words, 3):
 			if all(word not in string.punctuation for word in phrase):
 				phrase_counter[phrase] += 1
+	ret_val = dict(phrase_counter.most_common(count))
+	print(ret_val)
 	return dict(phrase_counter.most_common(count))
 
 def most_unique_reacts_on_a_post(count=5):
