@@ -147,6 +147,7 @@ class Bot(object):
                                                        token=token)
         return auth_response['ok']
 
+
     '''
     EVENT HANDLERS
     '''
@@ -203,8 +204,6 @@ class Bot(object):
         try:
             event = slack_event['event']
             channel_id = event['channel']
-            # if self.is_dm_channel(channel_id):
-            #	return
             user_id = event['user']
             time_stamp = event['ts']
             text = event['text']
@@ -262,66 +261,64 @@ class Bot(object):
 
     def common_phrases(self):
         phrases = analytics.get_common_phrases()
-        result_str = ['Common Phrases:\n']
+        result_str = ['Common Phrases:']
         for p in phrases:
-            result_str.append(' '.join(p) + '\n')
-        return ''.join(result_str)
+            result_str.append(' '.join(p))
+        return '\n'.join(result_str)
 
     def most_reacted_to_message(self, text):
         re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
-        result_str = []
-        if not re_object:
-            result_str.append('Most reacted to posts:\n')
-            msgs = analytics.most_reacted_to_posts()
-        else:
+        
+        title = 'Most reacted to posts'
+        if re_object:
             user_id = re_object.group(0)
-            result_str.append('Most reacted to posts for ' + self.users[user_id] + ':\n')
-            msgs = analytics.most_reacted_to_posts(re_object.group(0))
+            title += ' for ' + self.users[user_id] + ':'
+            
+        msgs = analytics.most_reacted_to_posts(user_id)
 
+        result_str = []
+        result_str.append(title)
         for msg, count in msgs.items():
-            result_str.append(str(db.get_message_text('', msg)) + ' : ' + str(count) + '\n')
+            result_str.append(msg + ' : ' + str(count))
 
-        return ''.join(result_str)
+        return '\n'.join(result_str)
 
     def most_reacts(self, args):
         user_reacts = analytics.users_with_most_reacts()
 
-        result_str = ['Users that react the most\n']
+        result_str = ['Users that react the most']
         for user, count in user_reacts.items():
             if self.user_exists(user):
-                result_str.append('<@' + user + '>: ' + str(count) + '\n')
+                result_str.append('<@' + user + '>: ' + str(count))
             else:
                 print(user + 'not in users dictionary')
-        return ''.join(result_str)
+        return '\n'.join(result_str)
 
     def most_active(self):
         most_active = analytics.most_active()
-        result_str = ['Most active users:\n']
+        result_str = ['Most active users:']
         for user in most_active:
             if self.user_exists(user):
-                result_str.append('<@' + user + '>\n')
+                result_str.append('<@' + user + '>')
             else:
                 print(str(user) + 'not in users dictionary')
-        return ''.join(result_str)
+        return '\n'.join(result_str)
 
     def most_used_reacts(self, text):
         user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
-        if not user_id:
-            result = analytics.most_used_reacts()
-        else:
-            result = analytics.favorite_reacts_of_user(user_id.group(0))
 
-        result_str = ['Most used reacts:\n']
+        users = list(user_id.group(0)) if user_id else self.users
+        result = analytics.favorite_reacts_of_users(users)
+
+        return_str = ['Most used reacts:']
         for r in result:
-            result_str.append(':')
-            result_str.append(str(r[0]))
-            result_str.append(':')
-            result_str.append(' : ' + str(r[1]) + '\n')
-        return ''.join(result_str)
+            line = ':' + str(r[0]) + ': : ' + str(r[1])
+            return_str.append(line)
+        return '\n'.join(result_str)
 
     def most_unique_reacts_on_post(self, text):
         channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
-        result_str = ['Messages with most unique reacts:\n']
+        result_str = ['Messages with most unique reacts:']
         if not channel_id:
             result = analytics.most_unique_reacts_on_a_post()
         else:
@@ -331,12 +328,11 @@ class Bot(object):
             text = db.get_message_text('', msg_id)
             if text:
                 react_str = ''.join([':' + r + ': ' for r in reacts.keys()])
-                result_str.append(text + ' : ' + react_str + '\n')
+                result_str.append(text + ' : ' + react_str)
 
-        return ''.join(result_str)
+        return '\n'.join(result_str)
 
     def react_buzzwords(self, text):
-
         if not text.strip():
             return 'specify at least one react'
 
@@ -345,29 +341,28 @@ class Bot(object):
         reacts = re.findall('(?<=:)(.*?)(?=:)', text)
         reacts = {r for r in reacts if r.strip(' ')}
 
-        try:
-            for r in reacts:
-                result_str.append(':' + r + ':: ')
+        for r in reacts:
+            try:
                 react_buzzwords = analytics.react_buzzword(r, self.users, self.channels, 10)
 
+                result_str.append(':' + r + ':: ')
                 if react_buzzwords:
-                    result_str.append(', '.join([word for word in react_buzzwords.keys()]) + '\n')
+                    result_str.append(', '.join([word for word in react_buzzwords.keys()]))
                 else:
-                    result_str.append('React not used\n')
+                    result_str.append('React not used')
 
-        except Exception as e:
-            logging.getLogger(__name__).exception(e.message, e.args)
-            return 'something went wrong'
+            except Exception as e:
+                logging.getLogger(__name__).exception(e.message, e.args)
+                return 'something went wrong'
 
-        return ''.join(result_str)
+        return '\n'.join(result_str)
 
     def event_handler_loop(self):
-        print('start event loop')
         while True:
             while not self.event_queue.empty():
                 event = self.event_queue.get()
                 self.handle_event(event)
-            sleep(1)
+            sleep(100)
 
     def handle_event(self, event):
         if event.type == EVENT_TYPE_API_EVENT:

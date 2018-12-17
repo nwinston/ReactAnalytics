@@ -5,8 +5,6 @@ import re
 import db
 import os
 from nltk.util import ngrams
-import string
-from util import time_it
 
 up_dir = os.path.dirname(os.path.dirname(__file__))
 stop_words_file = up_dir + '/stopwords.txt'
@@ -22,157 +20,164 @@ punc += '“'
 
 # Messages we don't want used in the common_phrases method
 # because they're posted by slack
-omit_phrases = ['joined the channel', 'left the channel', 'pinned a message', 'uploaded a file']
+omit_phrases = ['joined the channel', 'left the channel',
+                'pinned a message', 'uploaded a file']
 
-def most_used_reacts(count=5):
-	reacts = db.get_react_counts()
-	return _most_used_reacts(reacts, count)
+CHANNEL_EXPR = re.compile('(?<=<#)(.*?)(?=>)')
+USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 
-def _most_used_reacts(reacts, count):
-	sorted_reacts = sorted(reacts.items(), key=operator.itemgetter(1))[::-1]
-	spliced = sorted_reacts[:count]
-	return spliced[::-1]
 
-def favorite_reacts_of_all(users, count=5):
-	user_reacts = {user : db.get_reacts_by_user(user) for user in users}
-	result = {}
-	for user in user_reacts:
-		result[user] = favorite_reacts_of_user(user, count)
-	return result
+def get_top(f):
+    def wrapper(*args, **kwargs):
+        counter = f(*args, **kwargs)
+        return dict(counter.most_common(kwargs['count']))
+    return wrapper
 
+
+@get_top
 def favorite_reacts_of_user(user, count=5):
-	user_reacts = db.get_reacts_by_user(user)
-	return _most_used_reacts(user_reacts, count)
+    return db.get_reacts_by_user(user)
+
+
+def favorite_reacts_of_users(users, count=5):
+    return {user: favorite_reacts_of_user(user, count) for user in users}
+
 
 def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
-	sorted_data = sorted(data.items(), key=sort_key)[::-1]
-	if count > 0:
-		sorted_data = sorted_data[:count]
-	return {item[0] : item[1] for item in sorted_data}
+    sorted_data = sorted(data.items(), key=sort_key)[::-1]
+    if count > 0:
+        sorted_data = sorted_data[:count]
+    return {item[0]: item[1] for item in sorted_data}
 
-# Given a list of message ids, get all the unique words
-# in those messages. Parses escaped channels/users
-# (i.e. UserID -> display_name)
+
+def translate(token, users, channels):
+    ''' 
+    This function converts escaped tokens to their display names. If token is not 
+    escaped, the token is returned
+
+	Args: 
+		token    (str)  : word to translate
+		users    (list) : List of "escaped" Slack users
+    	channels (list) : List of "escaped" Slack channels
+
+	Returns: 
+		str: translated word
+	'''
+    find = CHANNEL_EXPR.search(token)
+    if channel:
+        channel_id = find.group(0)
+        return channels.get(channel_id, token)
+
+    find = USER_EXPR.search(token)
+    if search:
+        user_id = find.group(0)
+        return users.get(user_id, token)
+
+    return token
+
+
 def get_unique_words(msgs, users, channels):
-	channel_re = re.compile('(?<=<#)(.*?)(?=>)')
-	user_re = re.compile('(?<=<@)(.*?)(?=>)')
+    ''' 
+Args: 
+msgs     (list) : list of message IDs 
+users    (list) : list of "escaped" Slack users
+    channels (list) : list of "escaped" Slack channels
 
-	words = defaultdict(lambda: 1)
+Returns: 
+Counter: All unique words used in the given messages
+'''
 
-	translator = str.maketrans('', '', punc)
+    disp_names = {users[user]: users[user]['display_name'] for user in users}
+    unique_words = Counter()
+    translator = str.maketrans('', '', punc)
+    msgs = db.get_message_text_from_ids(msgs)
 
-	msgs = db.get_message_text_from_ids(msgs)
+    for msg_id in msgs:
+        msg_text = msgs[msg_id].lower()
 
-	for msg_id in msgs:
-		msg_text = msgs[msg_id].lower()
-		if not msg_text:
-			continue
-		split_msg = {w.translate(translator) for w in msg_text.split(' ') if w.lower() not in stop_words}
-		print(split_msg)
-		for word in split_msg:
-			# tmp variable in case word is escaped (i.e linked name/channel)
-			key = word
+        if not msg_text:
+            continue
 
-			ch_find = channel_re.search(word)
-			if ch_find:
-				ch_id = ch_find.group(0)
-				if ch_id in channels:
-					key = channels[ch_id]
-			user_find = user_re.search(word)
-			if user_find:
-				user_id = user_find.group(0)
-				if user_id in users:
-					key = users[user_id]['display_name']
-			words[key] += 1
-	return dict(words)
+        tokenized = {w.translate(translator) for w in msg_text.split(
+            ' ') if w.lower() not in stop_words}
+        for token in tokenized:
+            key = translate(token, disp_names, channels)
+            unique_words[key] += 1
 
+    return unique_words
+
+
+@get_top
 def react_buzzword(react_name, users, channels, count=5):
-	msgs = db.get_messages_with_react(react_name, False)
-	words = get_unique_words(msgs, users, channels)
-	ret = get_top_by_value(words, count)
-	return ret
+    ''' 
+	Finds the words most used in messages with the given react
 
-#Given a condition return the first count number
-#of elements in counter that satisfies the condition
-def get_top(condition=None):
-	def gen_react_count(f):
-		def wrapper(*args, **kwargs):
+	Args: 
+		react_name (str)  : Slack react name
+		users      (list) : List of "escaped" Slack users
+	    channels   (list) : List of "escaped" Slack channels
+	    count 	   (int)  : Number of results
 
-			# helper function
-			def gen(counter):
-				for k in counter:
-					if not condition:
-						yield (k, counter[k])
-					else:
-						if condition(k):
-							yield (k, counter[k])
-						else:
-							continue
+	Returns: 
+		Counter: The most common words used in messages with the given react
+'''
+
+    msgs = db.get_messages_with_react(react_name, False)
+    return get_unique_words(msgs, users, channels)
 
 
-			sliced = islice(gen(f(*args, **kwargs)), None)
-			sliced = dict((v[0], v[1]) for v in sliced)
-			return sliced
+@get_top
+def most_reacted_to_posts(count=5):
+    ''' 
+    Gets the messages with the most total reactions
 
-		return wrapper
-	return gen_react_count
+    If a user is given, the search is limited to just messages posted
+    by that user. Else, the every message is considered.
 
-@get_top(lambda id : bool(db.get_message_text('', id)))
-def most_reacted_to_posts(user_id=None, count=5):
-	if user_id:
-		ids = db.get_messages_by_user(user_id)
-	else:
-		ids = db.get_message_ids()
+	Args: 
+        user_id (str) : Slack user ID
+        count (list)  : Number of results
 
-	react_count = Counter()
+	Returns: 
+    	Counter: messages with the most reactions
+	'''
 
-	msgs = db.execute("SELECT MessageID, SUM(Count) FROM MessageReacts WHERE MessageID IN %s GROUP BY MessageID", (tuple(ids), ))
-	for msg in msgs:
-		react_count[msg[0]] = msg[1]
+    query = '''
+	        SELECT MessageText, SUM(Count) FROM Messages
+	        INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+	    	'''
 
-	react_count = dict(react_count.most_common(count))
+    msgs = db.execute(query)
+    msgs = {msg[0] : msg[1] for msg in msgs}
+    return Counter(msgs)
 
-	return react_count
 
-
-### this needs to be fixed
-@time_it
+@get_top
 def get_common_phrases(count=10):
-	phrase_counter = Counter()
-	texts = db.get_all_message_texts()
-	for msg in texts:
-		if any(omit in msg for omit in omit_phrases):
-			continue
-		words = msg.split(' ')
-		for phrase in ngrams(words, 3):
-			if all(word not in string.punctuation for word in phrase):
-				phrase_counter[phrase] += 1
-	return dict(phrase_counter.most_common(count))
+    phrase_counter = Counter()
+    texts = db.get_all_message_texts()
+    for msg in texts:
+        if any(omit in msg for omit in omit_phrases):
+            continue
+        words = msg.split(' ')
+        for phrase in ngrams(words, 3):
+            if all(word not in punc for word in phrase):
+                phrase_counter[phrase] += 1
+    return phrase_counter
 
+
+@get_top
 def most_unique_reacts_on_a_post(count=5):
-	reacts = db.get_reacts_on_all_messages() # msg_id : {react_name : count}
-	reacts = {msg_id : reacts[msg_id] for msg_id in reacts}
-	top_by_val = get_top_by_value(reacts, count, lambda x: len(x[1]))
-	return top_by_val
+    query = '''
+			SELECT MessageText, Count(DISTINCT ReactName) FROM Messages
+			INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+			GROUP BY MessageID
+			'''
+    msgs = db.execute(query)
+    counts = {msg[0] : msgs[1] for msg in msgs}
+    return Counter(counts)
 
+
+@get_top
 def users_with_most_reacts(count=5):
-	most_reacts = Counter(db.get_reacts_per_user())
-	print(most_reacts)
-	if count < 1:
-		count = None
-	return Counter(dict(most_reacts.most_common(count)))
-
-def most_messages(count=5):
-	msgs = db.get_message_table()
-	counter = Counter()
-	for msg in msgs:
-		counter[msg[2]] += 1
-	if count < 1:
-		count = None
-	return Counter(dict(counter.most_common(count)))
-
-def most_active(count=5):
-	most_msgs = most_messages(-1)
-	most_reacts = users_with_most_reacts(-1)
-	total = most_reacts + most_msgs
-	return dict(total.most_common(count))
+    return Counter(db.get_react_usage_totals())
