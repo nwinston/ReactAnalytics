@@ -353,7 +353,7 @@ class Bot(object):
                     result_str.append('React not used')
 
             except Exception as e:
-                logging.getLogger(__name__).exception(e.message, e.args)
+                logging.getLogger(__name__).exception(e)
                 return 'something went wrong'
 
         return '\n'.join(result_str)

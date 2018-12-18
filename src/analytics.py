@@ -79,14 +79,14 @@ def translate(token, users, channels):
 
 def get_unique_words(msgs, users, channels):
     ''' 
-Args: 
-msgs     (list) : list of message IDs 
-users    (list) : list of "escaped" Slack users
-    channels (list) : list of "escaped" Slack channels
+	Args: 
+		msgs     (list) : list of message IDs 
+		users    (list) : list of "escaped" Slack users
+	    channels (list) : list of "escaped" Slack channels
 
-Returns: 
-Counter: All unique words used in the given messages
-'''
+	Returns: 
+		Counter: All unique words used in the given messages
+	'''
 
     disp_names = {users[user]: users[user]['display_name'] for user in users}
     unique_words = Counter()
