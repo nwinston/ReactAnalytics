@@ -247,6 +247,7 @@ class Bot(object):
             elif command == MOST_ACTIVE:
                 response = self.most_active()
         except Exception as e:
+            print(e)
             self.send_dm(user_id, 'There was an error processing your request')
             raise e
 
