@@ -275,7 +275,7 @@ class Bot(object):
             user_id = re_object.group(0)
             title += ' for ' + self.users[user_id] + ':'
             
-        msgs = analytics.most_reacted_to_posts(user_id)
+        msgs = analytics.most_reacted_to_posts()
 
         result_str = []
         result_str.append(title)
