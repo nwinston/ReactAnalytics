@@ -308,7 +308,7 @@ class Bot(object):
     def most_used_reacts(self, text):
         user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
 
-        users = list(user_id.group(0)) if user_id else self.users
+        users = list(user_id) if user_id else self.users
         result = analytics.favorite_reacts_of_users(users)
 
         return_str = ['Most used reacts:']
