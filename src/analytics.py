@@ -150,7 +150,7 @@ def most_reacted_to_posts(count=5):
 
     msgs = db.execute(query)
     msgs = {msg[0] : msg[1] for msg in msgs}
-    return Counter(msgs)
+    return msgs
 
 
 @get_top
@@ -176,7 +176,7 @@ def most_unique_reacts_on_a_post(count=5):
 			'''
     msgs = db.execute(query)
     counts = {msg[0] : msgs[1] for msg in msgs}
-    return Counter(counts)
+    return counts
 
 
 @get_top
