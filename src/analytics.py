@@ -28,18 +28,18 @@ CHANNEL_EXPR = re.compile('(?<=<#)(.*?)(?=>)')
 USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 
 
-def get_top(f):
-    def wrapper(count=5, *args, **kwargs):
-        counter = Counter(f(*args))
+def get_top(f, count=5):
+    def wrapper(*args, **kwargs):
+        counter = Counter(f(*args, **kwargs))
         return dict(counter.most_common(count))
     return wrapper
 
 
 @get_top
-def favorite_reacts_of_user(user, count=5):
+def favorite_reacts_of_user(user):
     return Counter(db.get_reacts_by_user(user))
 
-def favorite_reacts_of_users(users, count=5):
+def favorite_reacts_of_users(users):
     return {user: favorite_reacts_of_user(user, count) for user in users}
 
 
@@ -108,7 +108,7 @@ def get_unique_words(msgs, users, channels):
 
 
 @get_top
-def react_buzzword(react_name, users, channels, count=5):
+def react_buzzword(react_name, users, channels):
     ''' 
 	Finds the words most used in messages with the given react
 
@@ -127,7 +127,7 @@ def react_buzzword(react_name, users, channels, count=5):
 
 
 @get_top
-def most_reacted_to_posts(count=5):
+def most_reacted_to_posts():
     ''' 
     Gets the messages with the most total reactions
 
@@ -154,7 +154,7 @@ def most_reacted_to_posts(count=5):
 
 
 @get_top
-def get_common_phrases(count=10):
+def get_common_phrases():
     phrase_counter = Counter()
     texts = db.get_all_message_texts()
     for msg in texts:
@@ -168,7 +168,7 @@ def get_common_phrases(count=10):
 
 
 @get_top
-def most_unique_reacts_on_a_post(count=5):
+def most_unique_reacts_on_a_post():
     query = '''
 			SELECT MessageText, Count(DISTINCT ReactName), Messages.MessageID FROM Messages
 			INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
@@ -180,5 +180,5 @@ def most_unique_reacts_on_a_post(count=5):
 
 
 @get_top
-def users_with_most_reacts(count=5):
+def users_with_most_reacts():
     return Counter(db.get_react_usage_totals())
