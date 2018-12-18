@@ -315,7 +315,7 @@ class Bot(object):
         for r in result:
             line = ':' + str(r[0]) + ': : ' + str(r[1])
             return_str.append(line)
-        return '\n'.join(result_str)
+        return '\n'.join(return_str)
 
     def most_unique_reacts_on_post(self, text):
         channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
