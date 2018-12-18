@@ -172,7 +172,6 @@ def most_unique_reacts_on_a_post():
     query = '''
 			SELECT MessageText, Count(DISTINCT ReactName), Messages.MessageID FROM Messages
 			INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-			GROUP BY Messages.MessageID
 			'''
     msgs = db.execute(query)
     counts = {msg[0] : msgs[1] for msg in msgs}
@@ -181,4 +180,4 @@ def most_unique_reacts_on_a_post():
 
 @get_top
 def users_with_most_reacts():
-    return Counter(db.get_react_usage_totals())
+    return db.get_react_usage_totals()
