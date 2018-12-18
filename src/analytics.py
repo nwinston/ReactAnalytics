@@ -29,9 +29,9 @@ USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 
 
 def get_top(f):
-    def wrapper(*args, **kwargs):
-        counter = Counter(f(*args, **kwargs))
-        return dict(counter.most_common(args[-1]))
+    def wrapper(count, *args, **kwargs):
+        counter = Counter(f(*args, **kwargs, count=count))
+        return dict(counter.most_common(count))
     return wrapper
 
 
