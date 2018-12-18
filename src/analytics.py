@@ -170,9 +170,10 @@ def get_common_phrases():
 @get_top
 def most_unique_reacts_on_a_post():
     query = '''
-			SELECT Messages.MessageText, Count(DISTINCT ReactName), Messages.MessageID FROM Messages
+			SELECT Messages.MessageText, Count(DISTINCT ReactName) as 'num', Messages.MessageID FROM Messages
 			INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-			GROUP BY ReactName
+			GROUP BY Messages.MessageText
+			ORDER BY num
 			'''
     msgs = db.execute(query)
     counts = {msg[0] : msgs[1] for msg in msgs}
