@@ -146,6 +146,7 @@ def most_reacted_to_posts(count=5):
     query = '''
 	        SELECT Messages.MessageText, SUM(MessageReacts.Count) FROM Messages
 	        INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+	        GROUP BY Messages.MessageID
 	    	'''
 
     msgs = db.execute(query)
