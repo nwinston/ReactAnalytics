@@ -175,9 +175,8 @@ def most_unique_reacts_on_a_post():
 			GROUP BY Messages.MessageID
 			'''
     msgs = db.execute(query)
-    counts = {msg[0] : msg[1] for msg in msgs}
-    print(counts)
-    return counts
+    msgs = {msg[0] : msg[1] for msg in msgs}
+    return msgs
 
 
 @get_top
