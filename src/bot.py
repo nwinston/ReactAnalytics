@@ -363,7 +363,7 @@ class Bot(object):
             while not self.event_queue.empty():
                 event = self.event_queue.get()
                 self.handle_event(event)
-            sleep(100)
+            sleep(1)
 
     def handle_event(self, event):
         if event.type == EVENT_TYPE_API_EVENT:
