@@ -169,7 +169,7 @@ def get_reacts_by_user(cursor, user_id):
     reacts = {}
     while row:
         reacts[row[0]] = row[1]
-        row = c.fetchone()
+        row = cursor.fetchone()
     return reacts
 
 
