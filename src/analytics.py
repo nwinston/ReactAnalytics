@@ -40,7 +40,7 @@ def favorite_reacts_of_user(user):
     return Counter(db.get_reacts_by_user(user))
 
 def favorite_reacts_of_users(users):
-    return {user: favorite_reacts_of_user(user, count) for user in users}
+    return {user: favorite_reacts_of_user(user) for user in users}
 
 
 def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
