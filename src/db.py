@@ -256,6 +256,9 @@ def get_message_text_from_ids(cursor, msg_ids):
     for msg_id in msg_ids:
         cursor.execute(query, (msg_id, ))
         row = cursor.fetchone()
+        if not row:
+            print('not row')
+            continue
         result[msg_id] = row[0]
     return result
 
