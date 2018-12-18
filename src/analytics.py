@@ -88,7 +88,7 @@ def get_unique_words(msgs, users, channels):
 		Counter: All unique words used in the given messages
 	'''
 
-    disp_names = {users[user]: users[user]['display_name'] for user in users}
+    disp_names = {user : users[user]['display_name'] for user in users}
     unique_words = Counter()
     translator = str.maketrans('', '', punc)
     msgs = db.get_message_text_from_ids(msgs)
