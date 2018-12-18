@@ -176,6 +176,7 @@ def most_unique_reacts_on_a_post():
 			'''
     msgs = db.execute(query)
     msgs = {msg[0] : msg[1] for msg in msgs}
+    print(msgs)
     return msgs
 
 
