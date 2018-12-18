@@ -107,7 +107,7 @@ def get_unique_words(msgs, users, channels):
     return unique_words
 
 
-@get_top(10)
+@get_top(count=10)
 def react_buzzword(react_name, users, channels):
     ''' 
 	Finds the words most used in messages with the given react
