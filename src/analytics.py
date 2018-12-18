@@ -65,12 +65,12 @@ def translate(token, users, channels):
 		str: translated word
 	'''
     find = CHANNEL_EXPR.search(token)
-    if channel:
+    if find:
         channel_id = find.group(0)
         return channels.get(channel_id, token)
 
     find = USER_EXPR.search(token)
-    if search:
+    if find:
         user_id = find.group(0)
         return users.get(user_id, token)
 
