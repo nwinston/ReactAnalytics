@@ -320,10 +320,8 @@ class Bot(object):
     def most_unique_reacts_on_post(self, text):
         channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
         result_str = ['Messages with most unique reacts:']
-        if not channel_id:
-            result = analytics.most_unique_reacts_on_a_post()
-        else:
-            result = analytics.most_unique_reacts_on_a_post(channel_id.group(0))
+        
+        result = analytics.most_unique_reacts_on_a_post()
 
         for msg_id, reacts in result.items():
             text = db.get_message_text('', msg_id)
