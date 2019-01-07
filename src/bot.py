@@ -254,7 +254,6 @@ class Bot(object):
             self.load_users()
             return user in self.users
 
-    @result_join
     def common_phrases(self):
         phrases = analytics.get_common_phrases()
         result_str = ['Common Phrases:']
@@ -319,7 +318,7 @@ class Bot(object):
         result = analytics.most_unique_reacts_on_a_post()
 
         for msg, reacts in result.items():
-            react_str = ''.join([':' + str(r) + ': ' for r in reacts.keys()])
+            react_str = ''.join([':' + r + ': ' for r in reacts.keys()])
             result_str.append(msg + ' : ' + react_str)
 
         return '\n'.join(result_str)
