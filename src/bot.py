@@ -318,7 +318,7 @@ class Bot(object):
         result = analytics.most_unique_reacts_on_a_post()
 
         for msg, reacts in result.items():
-            result_str.append(msg + ' : ' + str(reacts))
+            result_str.append(msg + ' - ' + str(reacts))
 
         return '\n'.join(result_str)
 
