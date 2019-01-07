@@ -128,12 +128,12 @@ def unique_words(msgs, users, channels):
     translator = str.maketrans('', '', punc)
 
     for msg in msgs:
+        if not msg:
+            continue
+        
         msg = msg.lower()
 
-        if not msg_text:
-            continue
-
-        tokenized = {w.translate(translator) for w in msg_text.split(
+        tokenized = {w.translate(translator) for w in msg.split(
             ' ') if w.lower() not in stop_words}
         for token in tokenized:
             key = translate(token, disp_names, channels)
