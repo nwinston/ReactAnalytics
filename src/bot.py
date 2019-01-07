@@ -274,7 +274,7 @@ class Bot(object):
         result_str = []
         result_str.append(title)
         for msg, count in msgs.items():
-            result_str.append(msg + ' : ' + str(count))
+            result_str.append(msg + ' : ' + str(count[0]))
 
         return '\n'.join(result_str)
 
