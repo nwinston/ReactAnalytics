@@ -256,7 +256,7 @@ class Bot(object):
 
     def common_phrases(self):
         phrases = analytics.get_common_phrases()
-        result_str = ['Common Phrases:']
+        result_str = ['*Common Phrases:*']
         for p in phrases:
             result_str.append(' '.join(p))
         return '\n'.join(result_str)
@@ -264,24 +264,22 @@ class Bot(object):
     def most_reacted_to_message(self, text):
         re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
         user_id = None
-        title = 'Most reacted to posts'
         if re_object:
             user_id = re_object.group(0)
-            title += ' for ' + self.users[user_id] + ':'
             
         msgs = analytics.most_reacted_to_posts()
 
-        result_str = []
+        result_str = ['*Most reacted to posts*']
         result_str.append(title)
         for msg, count in msgs.items():
-            result_str.append(msg + ' : ' + str(count[0]))
+            result_str.append(msg + ': ' + str(count[0]))
 
         return '\n'.join(result_str)
 
     def most_reacts(self, args):
         user_reacts = analytics.users_with_most_reacts()
 
-        result_str = ['Users that react the most']
+        result_str = ['*Users that react the most*']
         for user, count in user_reacts.items():
             if self.user_exists(user):
                 result_str.append('<@' + user + '>: ' + str(count[0]))
@@ -291,7 +289,7 @@ class Bot(object):
 
     def most_active(self):
         most_active = analytics.most_active()
-        result_str = ['Most active users:']
+        result_str = ['*Most active users*']
         for user in most_active:
             if self.user_exists(user):
                 result_str.append('<@' + user + '>')
@@ -305,7 +303,7 @@ class Bot(object):
         users = list(user_id) if user_id else self.users
         result = analytics.favorite_reacts_of_users(users)
 
-        return_str = ['Most used reacts:']
+        return_str = ['*Most used reacts:*']
         for r in result:
             line = ':' + str(r[0]) + ': : ' + str(r[1])
             return_str.append(line)
@@ -313,12 +311,12 @@ class Bot(object):
 
     def most_unique_reacts_on_post(self, text):
         channel_id = re.search('(?<=\#)(.*?)(?=\|)', text)
-        result_str = ['Messages with most unique reacts:']
+        result_str = ['*Messages with most unique reacts*']
 
         result = analytics.most_unique_reacts_on_a_post()
 
         for msg, reacts in result.items():
-            result_str.append(msg + ' - ' + str(reacts))
+            result_str.append(msg + ': ' + str(reacts))
 
         return '\n'.join(result_str)
 
