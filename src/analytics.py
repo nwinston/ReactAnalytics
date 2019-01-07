@@ -41,7 +41,7 @@ REACTS_BY_USER = '''
     FROM UserReacts WHERE UserReacts.UserID = %s
     '''
 UNIQUE_REACTS = '''
-    SELECT Messages.MessageText, MessageReacts.ReactName FROM Messages
+    SELECT Messages.MessageText, COUNT(MessageReacts.ReactName) FROM Messages
     INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
     GROUP BY Messages.MessageID
     '''
@@ -201,7 +201,6 @@ def get_common_phrases():
 @to_dict
 def most_unique_reacts_on_a_post():
     tbl = db.execute(UNIQUE_REACTS)
-    print(tbl)
     return tbl
 
 
