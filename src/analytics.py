@@ -115,7 +115,7 @@ def translate(token, users, channels):
 def unique_words(msgs, users, channels):
     ''' 
 	Args: 
-		msgs     (list) : list of message IDs 
+		msgs     (list) : list of messages
 		users    (list) : list of "escaped" Slack users
 	    channels (list) : list of "escaped" Slack channels
 
@@ -130,7 +130,7 @@ def unique_words(msgs, users, channels):
     for msg in msgs:
         if not msg:
             continue
-        
+
         msg = msg.lower()
 
         tokenized = {w.translate(translator) for w in msg.split(

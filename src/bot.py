@@ -284,7 +284,7 @@ class Bot(object):
         result_str = ['Users that react the most']
         for user, count in user_reacts.items():
             if self.user_exists(user):
-                result_str.append('<@' + user + '>: ' + str(count))
+                result_str.append('<@' + user + '>: ' + str(count[0]))
             else:
                 print(user + 'not in users dictionary')
         return '\n'.join(result_str)
