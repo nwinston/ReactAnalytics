@@ -126,10 +126,9 @@ def unique_words(msgs, users, channels):
     disp_names = {user : users[user]['display_name'] for user in users}
     unique_words = Counter()
     translator = str.maketrans('', '', punc)
-    msgs = db.get_message_text_from_ids(msgs)
 
-    for msg_id in msgs:
-        msg_text = msgs[msg_id].lower()
+    for msg in msgs:
+        msg = msg.lower()
 
         if not msg_text:
             continue
