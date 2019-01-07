@@ -159,7 +159,7 @@ def react_buzzword(react_name, users, channels):
     '''
 
     msgs = db.execute(MESSAGES_WITH_REACT, (react_name,))
-    print(msgs)
+    msgs = [msg[0] for msg in msgs]
     return unique_words(msgs, users, channels)
 
 
