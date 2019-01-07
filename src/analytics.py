@@ -70,8 +70,7 @@ def to_dict(f):
     '''
     def wrapper(*args, **kwargs):
         tbl = f(*args, **kwargs)
-        tbl = {row[0] : row[1:] for row in tbl}
-        print(tbl)
+        tbl = {row[0] : tuple(row[1:]) for row in tbl}
         return tbl
     return wrapper
 
@@ -199,9 +198,9 @@ def get_common_phrases():
 
 
 @get_top
-@to_dict
 def most_unique_reacts_on_a_post():
     tbl = db.execute(UNIQUE_REACTS)
+    tbl = {row[0] : row[1] for row in tbl}
     return tbl
 
 
