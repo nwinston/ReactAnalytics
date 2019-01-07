@@ -270,7 +270,6 @@ class Bot(object):
         msgs = analytics.most_reacted_to_posts()
 
         result_str = ['*Most reacted to posts*']
-        result_str.append(title)
         for msg, count in msgs.items():
             result_str.append(msg + ': ' + str(count[0]))
 
