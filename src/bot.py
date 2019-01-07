@@ -263,9 +263,7 @@ class Bot(object):
 
     def most_reacted_to_message(self, text):
         re_object = re.search('(?<=\@)(.*?)(?=\|)', text)
-        user_id = None
-        if re_object:
-            user_id = re_object.group(0)
+        user_id = re_object.group(0) if re_object else None
             
         msgs = analytics.most_reacted_to_posts()
 
