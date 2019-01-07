@@ -28,26 +28,62 @@ CHANNEL_EXPR = re.compile('(?<=<#)(.*?)(?=>)')
 USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 
 
+
+# DB Queries
+ALL_MESSAGE_TEXTS = 'SELECT MessageText FROM Messages'
+MESSAGES_WITH_REACT = '''
+    SELECT MessageText FROM Messages
+    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+    WHERE MessageReacts.ReactName = %s AND MessageReacts.Count > 0
+    '''
+REACTS_BY_USER = '''
+    SELECT UserReacts.ReactName, UserReacts.Count 
+    FROM UserReacts WHERE UserReacts.UserID = %s
+    '''
+UNIQUE_REACTS = '''
+    SELECT Messages.MessageText, Count(MessageReacts.ReactName) FROM Messages
+    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+    GROUP BY Messages.MessageID
+    '''
+MOST_REACTED_TO = '''
+    SELECT Messages.MessageText, SUM(MessageReacts.Count) FROM Messages
+    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+    GROUP BY Messages.MessageID
+    '''
+USAGE_TOTALS = 'SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID'
+
+
+# Might be going a little overboard with the decorators here
+
 def get_top(f, count=5):
+    '''
+    Returns the most common elements returned by f
+    '''
     def wrapper(*args, **kwargs):
         counter = Counter(f(*args, **kwargs))
         return dict(counter.most_common(count))
     return wrapper
 
+def to_dict(f):
+    '''
+    Converts a list of rows to a dict of the first element in the row to a tuple of the rest
+    '''
+    def wrapper(*args, **kwargs):
+        tbl = f(*args, **kwargs)
+        tbl = {row[0] : tuple(row[1:]) for row in tbl}
+        return tbl
+    return wrapper
+
+
 
 @get_top
+@to_dict
 def favorite_reacts_of_user(user):
-    return Counter(db.get_reacts_by_user(user))
+    tbl = db.execute(REACTS_BY_USER, (user,))
+    return tbl
 
 def favorite_reacts_of_users(users):
     return {user: favorite_reacts_of_user(user) for user in users}
-
-
-def get_top_by_value(data, count=5, sort_key=operator.itemgetter(1)):
-    sorted_data = sorted(data.items(), key=sort_key)[::-1]
-    if count > 0:
-        sorted_data = sorted_data[:count]
-    return {item[0]: item[1] for item in sorted_data}
 
 
 def translate(token, users, channels):
@@ -76,7 +112,7 @@ def translate(token, users, channels):
     return token
 
 
-def get_unique_words(msgs, users, channels):
+def unique_words(msgs, users, channels):
     ''' 
 	Args: 
 		msgs     (list) : list of message IDs 
@@ -120,13 +156,14 @@ def react_buzzword(react_name, users, channels):
 
 	Returns: 
 		Counter: The most common words used in messages with the given react
-'''
+    '''
 
-    msgs = db.get_messages_with_react(react_name, False)
-    return get_unique_words(msgs, users, channels)
+    msgs = db.execute(MESSAGES_WITH_REACT, (react_name,))
+    return unique_words(msgs, users, channels)
 
 
 @get_top
+@to_dict
 def most_reacted_to_posts():
     ''' 
     Gets the messages with the most total reactions
@@ -142,21 +179,14 @@ def most_reacted_to_posts():
     	Counter: messages with the most reactions
 	'''
 
-    query = '''
-	        SELECT Messages.MessageText, SUM(MessageReacts.Count) FROM Messages
-	        INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-	        GROUP BY Messages.MessageID
-	    	'''
-
-    msgs = db.execute(query)
-    msgs = {msg[0] : msg[1] for msg in msgs}
+    msgs = db.execute(MOST_REACTED_TO)
     return msgs
 
 
 @get_top
 def get_common_phrases():
     phrase_counter = Counter()
-    texts = db.get_all_message_texts()
+    texts = db.execute(ALL_MESSAGE_TEXTS)
     for msg in texts:
         if any(omit in msg for omit in omit_phrases):
             continue
@@ -168,18 +198,14 @@ def get_common_phrases():
 
 
 @get_top
+@to_dict
 def most_unique_reacts_on_a_post():
-    query = '''
-			SELECT Messages.MessageText, Count(MessageReacts.ReactName) FROM Messages
-			INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-			GROUP BY Messages.MessageID
-			'''
-    msgs = db.execute(query)
-    msgs = {msg[0] : msg[1] for msg in msgs}
-    print(msgs)
-    return msgs
+    tbl = db.execute(UNIQUE_REACTS)
+    return tbl
 
 
 @get_top
+@to_dict
 def users_with_most_reacts():
-    return db.get_react_usage_totals()
+    tbl = db.execute(USAGE_TOTALS)
+    return tbl

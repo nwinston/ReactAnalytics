@@ -20,6 +20,7 @@ MOST_REACTS = 'most_reacts'
 COMMON_PHRASES = 'common_phrases'
 MOST_ACTIVE = 'most_active'
 
+
 VALID_COMMANDS = {MOST_USED_REACTS: '[_optional_ *@User*]',
                   MOST_UNIQUE_REACTS_ON_POST: '[_optional_ *@User*]',
                   MOST_REACTED_TO_MESSAGES: '[_optional_ *@User*]',
@@ -28,10 +29,7 @@ VALID_COMMANDS = {MOST_USED_REACTS: '[_optional_ *@User*]',
                   COMMON_PHRASES: '',
                   MOST_ACTIVE: ''}
 
-TIMER_INTERVAL = 2
-
 authed_teams = {}
-
 
 class Bot(object):
     def __init__(self):
@@ -69,7 +67,9 @@ class Bot(object):
         users_response = self.workspace_client.api_call('users.list',
                                                         scope=self.oauth['scope'])
 
-        if not users_response['ok']:
+        ok = users_response['ok']
+
+        if not ok:
             print('Failed to load users')
             print(users_response)
             return
@@ -99,15 +99,6 @@ class Bot(object):
                     should_continue = users_response['ok']
             else:
                 should_continue = False
-
-    # Given a channel ID checks if it's a direct message
-    def is_dm_channel(self, channel_id):
-        im_list_response = self.workspace_client.api_call('im.list')
-        if im_list_response['ok']:
-            im_channels = [im['id'] for im in im_list_response['ims']]
-            return channel_id in im_channels
-        else:
-            return False
 
     def load_reacts(self):
         resp = self.workspace_client.api_call('emoji.list')
@@ -160,7 +151,6 @@ class Bot(object):
             return False
 
     def handle_api_event(self, event):
-        print('handle_api_event')
         slack_event = event.event_info
         event_type = slack_event['event']['type']
 
@@ -254,12 +244,17 @@ class Bot(object):
         self.send_dm(user_id, response)
 
     def user_exists(self, user):
+        '''
+        Checks if user exists in cached user list. If not, reloads users (in the case that it's a new user)
+        and rechecks.
+        '''
         if user in self.users:
             return True
         else:
             self.load_users()
             return user in self.users
 
+    @result_join
     def common_phrases(self):
         phrases = analytics.get_common_phrases()
         result_str = ['Common Phrases:']
@@ -324,7 +319,7 @@ class Bot(object):
         result = analytics.most_unique_reacts_on_a_post()
 
         for msg, reacts in result.items():
-            react_str = ''.join([':' + r + ': ' for r in reacts.keys()])
+            react_str = ''.join([':' + str(r) + ': ' for r in reacts.keys()])
             result_str.append(msg + ' : ' + react_str)
 
         return '\n'.join(result_str)
