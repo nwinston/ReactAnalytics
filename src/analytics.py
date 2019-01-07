@@ -198,9 +198,9 @@ def get_common_phrases():
 
 
 @get_top
-@to_dict
 def most_unique_reacts_on_a_post():
     tbl = db.execute(UNIQUE_REACTS)
+    tbl = {r[0] : r[1] for r in tbl}
     return tbl
 
 
