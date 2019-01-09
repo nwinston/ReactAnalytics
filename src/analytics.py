@@ -206,7 +206,7 @@ def most_unique_reacts_on_a_post():
         texts[msg_id] = r[1]
         reacts[msg_id].append(r[2])
 
-    tbl = [(text[m_id], reacts[m_id]) for m_id in texts]
+    tbl = [(texts[m_id], reacts[m_id]) for m_id in texts]
     return tbl
 
 
