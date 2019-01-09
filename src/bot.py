@@ -151,7 +151,6 @@ class Bot(object):
             return False
 
     def handle_api_event(self, event):
-        print('event')
         slack_event = event.event_info
         event_type = slack_event['event']['type']
 

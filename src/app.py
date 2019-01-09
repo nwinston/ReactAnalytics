@@ -45,7 +45,6 @@ def thanks():
 
 @app.route('/listening', methods=['GET', 'POST'])
 def hears():
-    print('slack event')
     slack_event = request.get_json()
 
     if 'challenge' in slack_event:
