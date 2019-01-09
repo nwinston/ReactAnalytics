@@ -45,7 +45,7 @@ UNIQUE_REACTS = '''
     '''
 MOST_REACTED_TO = '''
     SELECT Messages.MessageText, Count(Reacts.ReactName) FROM Messages
-    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+    INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     GROUP BY Messages.MessageID, Reacts.ReactName
     '''
 USAGE_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'

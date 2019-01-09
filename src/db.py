@@ -81,6 +81,8 @@ def execute(cursor, query, args=None):
 
 @psycopg2_cur
 def add_react(cursor, react):
+    print('add_react')
+    print(react)
     cursor.execute('INSERT INTO Reacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
 
 
