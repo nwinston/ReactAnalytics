@@ -69,7 +69,7 @@ def to_dict(f):
     '''
     def wrapper(*args, **kwargs):
         tbl = f(*args, **kwargs)
-        tbl = {row[0] : tuple(row[1:]) for row in tbl}
+        tbl = {row[0] : tuple(row[1:]) for row in tbl if row[0]}
         return tbl
     return wrapper
 

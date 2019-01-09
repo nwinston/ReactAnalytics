@@ -53,12 +53,16 @@ def psycopg2_cur(func):
 
 @psycopg2_cur
 def remove_message(cursor, msg):
+    if not msg:
+        return
     query = 'DELETE FROM Messages WHERE MessageID = %s'
     cursor.execute(query, (msg.msg_id,))
 
 
 @psycopg2_cur
 def add_message(cursor, msg):
+    if not msg:
+        return
     try:
         cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s);',
                        (msg.msg_id, msg.user_id, msg.text))
@@ -81,8 +85,8 @@ def execute(cursor, query, args=None):
 
 @psycopg2_cur
 def add_react(cursor, react):
-    print('add_react')
-    print(react)
+    if not react:
+        return
     cursor.execute('INSERT INTO Reacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
 
 
@@ -90,6 +94,8 @@ def add_react(cursor, react):
 
 @psycopg2_cur
 def remove_react(cursor, react):
+    if not react:
+        return
     args = (react.msg_id, react.user_id, react.name)
     cursor.execute('''DELETE FROM Reacts WHERE MessageID=%s
                     AND UserID=%s AND ReactName=%s;''', args)
