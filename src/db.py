@@ -8,7 +8,7 @@ from functools import wraps
 CREATE_MESSAGES_TABLE = '''CREATE TABLE Messages (
     MessageID  varchar(40) PRIMARY KEY,
     UserID     varchar(40),
-    Text       TEXT))
+    Text       TEXT)
 '''
 
 CREATE_REACTS_TABLE = '''CREATE TABLE Reacts (
