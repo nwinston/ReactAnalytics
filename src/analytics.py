@@ -48,7 +48,13 @@ MOST_REACTED_TO = '''
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     GROUP BY Messages.MessageID
     '''
-USAGE_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
+REACT_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
+
+ACTIVITY_TOTALS = '''SELECT Messages.UserID, Count(*) FROM Messages
+    INNER JOIN Reacts ON Messages.UserID=Reacts.UserID
+    GROUP BY Messages.UserID
+
+'''
 
 
 # Might be going a little overboard with the decorators here
@@ -211,9 +217,14 @@ def most_unique_reacts_on_a_post():
 
     return tbl[:5]
 
+@get_top
+@to_dict
+def most_active():
+    tbl = db.execute(ACTIVITY_TOTALS)
+    return tbl
 
 @get_top
 @to_dict
 def users_with_most_reacts():
-    tbl = db.execute(USAGE_TOTALS)
+    tbl = db.execute(REACTS_TOTALS)
     return tbl
