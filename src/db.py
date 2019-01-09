@@ -22,6 +22,10 @@ DATABASE_URL = os.environ.get('DATABASE_URL')
 def get_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
+def create_tables(cursor):
+    cursor.execute(CREATE_MESSAGES_TABLE)
+    cursor.execute(CREATE_REACTS_TABLE)
+
 def psycopg2_cur(func):
     '''
     DB connection handler
@@ -31,6 +35,7 @@ def psycopg2_cur(func):
         try:
             conn = get_connection()
             cursor = conn.cursor()
+            create_tables(cursor)
             ret_val = func(cursor, *args, **kwargs)
         finally:
             conn.commit()
@@ -38,9 +43,7 @@ def psycopg2_cur(func):
         return ret_val
     return wrapper
 
-def create_tables(cursor):
-    cursor.execute(CREATE_MESSAGES_TABLE)
-    cursor.execute(CREATE_REACTS_TABLE)
+
 
 @psycopg2_cur
 def remove_message(cursor, msg):
