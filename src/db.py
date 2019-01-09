@@ -88,7 +88,7 @@ def add_react(cursor, react):
 
 @psycopg2_cur
 def remove_react(cursor, react):
-    args = (react.msg_id, react.user_id, react.react_name)
+    args = (react.msg_id, react.user_id, react.name)
     cursor.execute('''DELETE FROM Reacts WHERE MessageID=%s
                     AND UserID=%s AND ReactName=%s;''', args)
 
