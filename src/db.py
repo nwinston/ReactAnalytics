@@ -81,55 +81,10 @@ def execute(cursor, query, args=None):
 
 @psycopg2_cur
 def add_react(cursor, react):
+    print('add_react')
     cursor.execute('INSERT INTO MessageReacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
 
 
-def _add_react(cursor, msg_id, team_id, user_id, react_name):
-    def _exists_in_message_reacts(msg_id, react_name):
-        cursor.execute("SELECT * FROM MessageReacts WHERE MessageReacts.MessageID = %s AND MessageReacts.ReactName = %s",
-                       (msg_id, react_name))
-        result = cursor.fetchone()
-        if not result:
-            return False
-        return True
-
-
-    def _exists_in_user_reacts(user_id, react_name):
-        cursor.execute(
-            "SELECT * FROM UserReacts WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s",
-            (user_id, react_name))
-        result = cursor.fetchone()
-        if not result:
-            return False
-        return True
-
-
-
-
-    try:
-        if _exists_in_message_reacts(msg_id, react_name):
-            query = ('''UPDATE MessageReacts
-                    SET Count = Count + 1
-                    WHERE MessageReacts.MessageID = %s
-                    AND MessageReacts.ReactName = %s''')
-            cursor.execute(query, (msg_id, react_name))
-        else:
-            cursor.execute(
-                'INSERT INTO MessageReacts VALUES(%s, %s, 1);', (msg_id, react_name))
-
-        if _exists_in_user_reacts(user_id, react_name):
-            cursor.execute('''UPDATE UserReacts
-                    SET Count = Count + 1
-                    WHERE UserReacts.UserID = %s
-                    AND UserReacts.TeamID = %s
-                    AND UserReacts.ReactName = %s''',
-                           (user_id, team_id, react_name))
-        else:
-            cursor.execute(
-                'INSERT INTO UserReacts VALUES(%s, %s, %s, 1);', (user_id, team_id, react_name))
-    except Exception as e:
-        print(e)
-        print(traceback.print_exc())
 
 
 @psycopg2_cur
