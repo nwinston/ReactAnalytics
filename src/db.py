@@ -23,8 +23,11 @@ def get_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
 def create_tables(cursor):
-    cursor.execute(CREATE_MESSAGES_TABLE)
-    cursor.execute(CREATE_REACTS_TABLE)
+    try:
+        cursor.execute(CREATE_MESSAGES_TABLE)
+        cursor.execute(CREATE_REACTS_TABLE)
+    except Exception as e:
+        print(e)
 
 def psycopg2_cur(func):
     '''
