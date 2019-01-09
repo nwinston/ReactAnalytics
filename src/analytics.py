@@ -47,13 +47,16 @@ MOST_REACTED_TO = '''
     SELECT Messages.Text, Count(Reacts.ReactName) FROM Messages
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     GROUP BY Messages.MessageID
-    ORDER BY Count(Reacts.ReactName)
+    ORDER BY Count(Reacts.ReactName) DESC
     '''
 REACT_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
 
-ACTIVITY_TOTALS = '''SELECT Messages.UserID, Count(*) FROM Messages
-    INNER JOIN Reacts ON Messages.UserID=Reacts.UserID
-    GROUP BY Messages.UserID
+ACTIVITY_TOTALS = '''Select UserID, Count(UserID) FROM
+(SELECT UserID FROM Messages UNION ALL
+SELECT UserID FROM Reacts) 
+As t
+GROUP BY UserID
+ORDER BY Count(UserID) DESC
 
 '''
 
@@ -215,11 +218,10 @@ def most_unique_reacts_on_a_post():
 
     return tbl[:5]
 
-@get_top
-@to_dict
+
 def most_active():
     tbl = db.execute(ACTIVITY_TOTALS)
-    return tbl
+    return tbl[:5]
 
 @get_top
 @to_dict
