@@ -44,7 +44,7 @@ ALL_REACTS = '''
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     '''
 MOST_REACTED_TO = '''
-    SELECT Messages.MessageText, Count(Reacts.ReactName) FROM Messages
+    SELECT Messages.Text, Count(Reacts.ReactName) FROM Messages
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     GROUP BY Messages.MessageID, Reacts.ReactName
     '''
