@@ -100,14 +100,6 @@ class Bot(object):
             else:
                 should_continue = False
 
-    def load_reacts(self):
-        resp = self.workspace_client.api_call('emoji.list')
-        if resp['ok']:
-            with self.reacts_lock:
-                self.reacts_list = {react for react in resp['emoji'].keys()}
-        else:
-            print('Failed to load reacts')
-            print(resp)
 
     def send_dm(self, user_id, message):
         new_dm = self.bot_client.api_call('im.open',
@@ -154,53 +146,18 @@ class Bot(object):
         slack_event = event.event_info
         event_type = slack_event['event']['type']
 
-        if 'subtype' in slack_event['event']:
-            if slack_event['event']['subtype'] == 'message_deleted':
-                event_type = 'message_deleted'
+        if 'subtype' in slack_event['event'] and slack_event['event']['subtype'] == 'message_deleted':
+            event_type = 'message_deleted'
 
         if event_type == 'reaction_added':
-            return self.reaction_added(slack_event)
+            db.add_react(create_react(slack_event))
         elif event_type == 'reaction_removed':
-            return self.reaction_removed(slack_event)
+            db.remove_react(create_react(slack_event))
         elif event_type == 'message':
-            return self.message_posted(slack_event)
+            db.add_message(create_message(slack_event))
         elif event_type == 'message_deleted':
-            return self.message_removed(slack_event)
+            db.remove_message(create_message(slack_event))
 
-    def message_removed(self, slack_event):
-        db.remove_message(Message('', slack_event['channel'], slack_event['ts'], '', ''))
-
-    @staticmethod
-    def reaction_added(slack_event):
-        event = slack_event['event']
-        react_name = event['reaction']
-        user_id = event['user']
-        channel_id = event['item']['channel']
-        time_stamp = event['item']['ts']
-        db.add_react(React('', channel_id, time_stamp, user_id, react_name))
-
-    @staticmethod
-    def reaction_removed(slack_event):
-        event = slack_event['event']
-        react_name = event['reaction']
-        user_id = event['user']
-        channel_id = event['item']['channel']
-        time_stamp = event['item']['ts']
-
-        db.remove_react(React('', channel_id, time_stamp, user_id, react_name))
-
-    @staticmethod
-    def message_posted(slack_event):
-        try:
-            event = slack_event['event']
-            channel_id = event['channel']
-            user_id = event['user']
-            time_stamp = event['ts']
-            text = event['text']
-            msg = Message('', channel_id, time_stamp, user_id, text)
-            db.add_message(msg)
-        except:
-            logging.getLogger(__name__).error('Failed to unpack slack event')
 
     def handle_slash_command(self, event):
         event = event.event_info
@@ -238,8 +195,7 @@ class Bot(object):
                 response = self.most_active()
         except Exception as e:
             print(e)
-            self.send_dm(user_id, 'There was an error processing your request')
-            raise e
+            response = 'There was an error processing your request'
 
         self.send_dm(user_id, response)
 

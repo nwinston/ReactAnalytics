@@ -73,9 +73,7 @@ def on_slash_command():
     print('slash_command received')
     slash_command = parse_slash_command(request)
     text = slash_command['text']
-    response_text = 'use [/reacts help] for options'
-    if text.lower().strip() == 'help':
-        return make_response(get_help_response(), 200)
+    response_text = get_help_response()
     if text.split(' ')[0] in VALID_COMMANDS:
         task = queue_bot_event.apply(args=(slash_command['token'], EVENT_TYPE_SLASH_COMMAND, slash_command))
         task.wait()
