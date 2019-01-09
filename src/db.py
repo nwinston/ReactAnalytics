@@ -5,13 +5,13 @@ import log
 from functools import wraps
 
 
-CREATE_MESSAGES_TABLE = '''CREATE TABLE Messages (
+CREATE_MESSAGES_TABLE = '''CREATE TABLE IF NOT EXISTS Messages (
     MessageID  varchar(40) PRIMARY KEY,
     UserID     varchar(40),
     Text       TEXT)
 '''
 
-CREATE_REACTS_TABLE = '''CREATE TABLE Reacts (
+CREATE_REACTS_TABLE = '''CREATE TABLE IF NOT EXISTS Reacts (
   MessageID    varchar(40),
   UserID       varchar(40),
   ReactName    varchar(40),
