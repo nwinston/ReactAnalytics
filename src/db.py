@@ -27,7 +27,7 @@ def create_tables(cursor):
         cursor.execute(CREATE_MESSAGES_TABLE)
         cursor.execute(CREATE_REACTS_TABLE)
     except Exception as e:
-        print(e)
+        pass
 
 def psycopg2_cur(func):
     '''
