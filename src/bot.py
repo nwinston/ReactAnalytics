@@ -242,8 +242,10 @@ class Bot(object):
 
     def most_active(self):
         most_active = analytics.most_active()
+        print(most_active)
         result_str = ['*Most active users*']
         for user, _ in most_active:
+            print(user)
             if self.user_exists(user):
                 result_str.append('<@' + user + '>')
             else:
