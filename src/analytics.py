@@ -32,24 +32,24 @@ USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 # DB Queries
 ALL_MESSAGE_TEXTS = 'SELECT MessageText FROM Messages'
 MESSAGES_WITH_REACT = '''
-    SELECT MessageText FROM Messages
-    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-    WHERE MessageReacts.ReactName = %s AND MessageReacts.Count > 0
+    SELECT Text FROM Messages
+    INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
+    WHERE Reacts.ReactName = %s
     '''
 REACTS_BY_USER = '''
-    SELECT UserReacts.ReactName, UserReacts.Count 
-    FROM UserReacts WHERE UserReacts.UserID = %s
+    SELECT * FROM Reacts WHERE Reacts.UserID = %s
     '''
 UNIQUE_REACTS = '''
-    SELECT Messages.MessageText, MessageReacts.ReactName FROM Messages
-    INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
+    SELECT Messages.Text, Reacts.ReactName FROM Messages
+    INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
+    GROUP BY Reacts.ReactName
     '''
 MOST_REACTED_TO = '''
-    SELECT Messages.MessageText, SUM(MessageReacts.Count) FROM Messages
+    SELECT Messages.MessageText, Count(Reacts.ReactName) FROM Messages
     INNER JOIN MessageReacts ON Messages.MessageID=MessageReacts.MessageID
-    GROUP BY Messages.MessageID
+    GROUP BY Messages.MessageID, Reacts.ReactName
     '''
-USAGE_TOTALS = 'SELECT UserID, sum(Count) FROM UserReacts GROUP BY UserID'
+USAGE_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
 
 
 # Might be going a little overboard with the decorators here

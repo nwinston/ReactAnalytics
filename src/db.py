@@ -4,6 +4,19 @@ import psycopg2
 import log
 from functools import wraps
 
+
+CREATE_MESSAGES_TABLE = '''CREATE TABLE Messages (
+    MessageID  varchar(40) PRIMARY KEY,
+    UserID     varchar(40),
+    Text       TEXT))
+'''
+
+CREATE_REACTS_TABLE = '''CREATE TABLE Reacts (
+  MessageID    varchar(40),
+  UserID       varchar(40),
+  ReactName    varchar(40),
+  FOREIGN KEY (MessageID) REFERENCES Messages (MessageID))
+'''
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 def get_connection():
@@ -25,17 +38,21 @@ def psycopg2_cur(func):
         return ret_val
     return wrapper
 
+def create_tables(cursor):
+    cursor.execute(CREATE_MESSAGES_TABLE)
+    cursor.execute(CREATE_REACTS_TABLE)
+
 @psycopg2_cur
 def remove_message(cursor, msg):
-    query = 'DELETE FROM MESSAGES WHERE MessageID = %s'
+    query = 'DELETE FROM Messages WHERE MessageID = %s'
     cursor.execute(query, (msg.msg_id,))
 
 
 @psycopg2_cur
 def add_message(cursor, msg):
     try:
-        cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s, %s);',
-                       (msg.msg_id, msg.team_id, msg.user_id, msg.text))
+        cursor.execute('INSERT INTO Messages VALUES (%s, %s, %s);',
+                       (msg.msg_id, msg.user_id, msg.text))
     except Exception as e:
         print(e)
         print(traceback.print_exc())
@@ -52,10 +69,10 @@ def execute(cursor, query, args=None):
     return result
 
 
+
 @psycopg2_cur
 def add_react(cursor, react):
-    _add_react(cursor, react.msg_id, react.team_id,
-               react.user_id, react.react_name)
+    cursor.execute('INSERT INTO MessageReacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
 
 
 def _add_react(cursor, msg_id, team_id, user_id, react_name):
@@ -76,6 +93,8 @@ def _add_react(cursor, msg_id, team_id, user_id, react_name):
         if not result:
             return False
         return True
+
+
 
 
     try:
@@ -106,23 +125,10 @@ def _add_react(cursor, msg_id, team_id, user_id, react_name):
 
 @psycopg2_cur
 def remove_react(cursor, react):
-    try:
-        cursor.execute('''UPDATE MessageReacts
-                SET Count = Count - 1
-                WHERE MessageReacts.MessageID = %s
-                AND MessageReacts.ReactName = %s''', (react.msg_id, react.react_name))
-    except Exception as e:
-        print(e)
-        print(traceback.print_exc())
+    args = (react.msg_id, react.user_id, react.react_name)
+    cursor.execute('''DELETE FROM Reacts WHERE MessageID=%s
+                    AND UserID=%s AND ReactName=%s;''', args)
 
-    try:
-        cursor.execute('''
-              UPDATE UserReacts
-              SET Count = Count - 1
-              WHERE UserReacts.UserID = %s AND UserReacts.ReactName = %s''', (react.user_id, react.react_name))
-    except Exception as e:
-        print(e)
-        print(traceback.print_exc())
 
 
 
@@ -136,7 +142,6 @@ def get_message_text_from_ids(cursor, msg_ids):
         cursor.execute(query, (msg_id, ))
         row = cursor.fetchone()
         if not row:
-            print('not row')
             continue
         result[msg_id] = row[0]
     return result
