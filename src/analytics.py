@@ -47,6 +47,7 @@ MOST_REACTED_TO = '''
     SELECT Messages.Text, Count(Reacts.ReactName) FROM Messages
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     GROUP BY Messages.MessageID
+    ORDER BY Count(Reacts.ReactName)
     '''
 REACT_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
 
@@ -167,8 +168,6 @@ def react_buzzword(react_name, users, channels):
     return unique_words(msgs, users, channels)
 
 
-@get_top
-@to_dict
 def most_reacted_to_posts():
     ''' 
     Gets the messages with the most total reactions
@@ -185,8 +184,7 @@ def most_reacted_to_posts():
 	'''
 
     msgs = db.execute(MOST_REACTED_TO)
-    return msgs
-
+    return msgs[:5]
 
 @get_top
 def get_common_phrases():

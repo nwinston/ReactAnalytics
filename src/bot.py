@@ -224,8 +224,8 @@ class Bot(object):
         msgs = analytics.most_reacted_to_posts()
 
         result_str = ['*Most reacted to posts*']
-        for msg, count in msgs.items():
-            result_str.append(msg + ': ' + str(count[0]))
+        for msg, count in msgs:
+            result_str.append(msg + ': ' + str(count))
 
         return '\n'.join(result_str)
 
@@ -267,7 +267,6 @@ class Bot(object):
         result_str = ['*Messages with most unique reacts*']
 
         result = analytics.most_unique_reacts_on_a_post()
-        print(result)
 
         for msg, reacts in result:
             react_str = ' '.join([':' + r + ':' for r in reacts])
