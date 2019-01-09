@@ -5,7 +5,7 @@ import re
 from slackclient import SlackClient
 import analytics
 import logging
-from util import React, Message
+from util import create_react, create_message
 import db
 from time import sleep
 
