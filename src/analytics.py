@@ -58,7 +58,8 @@ def get_top(f, count=5):
     Returns the most common elements returned by f
     '''
     def wrapper(*args, **kwargs):
-        counter = Counter(f(*args, **kwargs))
+        result = f(*args, **kwargs)
+        counter = Counter(result)
         return dict(counter.most_common(count))
     return wrapper
 
@@ -194,8 +195,6 @@ def get_common_phrases():
                 phrase_counter[phrase] += 1
     return phrase_counter
 
-
-@get_top
 def most_unique_reacts_on_a_post():
     tbl = db.execute(ALL_REACTS)
     
@@ -207,6 +206,8 @@ def most_unique_reacts_on_a_post():
         reacts[msg_id].append(r[2])
 
     tbl = [(texts[m_id], reacts[m_id]) for m_id in texts]
+    tbl = sorted(tbl, key=lambda r: len(r[1]))[:5]
+
     return tbl
 
 
