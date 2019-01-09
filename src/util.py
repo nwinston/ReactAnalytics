@@ -12,7 +12,10 @@ def create_react(slack_event):
 def create_message(slack_event):
     event = slack_event['event']
     channel_id = event['channel']
-    user_id = event['user']
+    try:
+        user_id = event['user']
+    except:
+        user_id = ''
     time_stamp = event['ts']
     text = event['text']
     return Message('', channel_id, time_stamp, user_id, text)
