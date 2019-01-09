@@ -205,11 +205,10 @@ def most_unique_reacts_on_a_post():
         texts[msg_id] = r[1]
         reacts[msg_id].append(r[2])
 
-    tbl = [(texts[m_id], reacts[m_id]) for m_id in texts]
-    print(tbl)
-    tbl = sorted(tbl, key=lambda r: len(r[1]))
+    tbl = [(texts[m_id], reacts[m_id]) for m_id in texts if texts[m_id]]
+    tbl = reversed(sorted(tbl, key=lambda r: len(r[1])))
 
-    return reversed(tbl)[:5]
+    return tbl[:5]
 
 
 @get_top
