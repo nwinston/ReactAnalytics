@@ -210,7 +210,7 @@ def get_common_phrases():
     phrases = []
 
     for text in texts:
-        for phrase in n_grams(text[0], 3):
+        for phrase in ngrams(text[0], 3):
             if phrase in omit_phrases:
                 continue
             if any(word in punc for word in phrase):
