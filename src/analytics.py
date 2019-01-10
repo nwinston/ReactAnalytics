@@ -211,7 +211,7 @@ def get_common_phrases():
 
     for text in texts:
         print(text)
-        for phrase in ngrams(text, 3):
+        for phrase in ngrams(text[0].split(' '), 3):
             print(phrase)
             if phrase in omit_phrases:
                 continue
