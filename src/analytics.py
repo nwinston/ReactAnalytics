@@ -225,10 +225,11 @@ def most_unique_reacts_on_a_post():
     
     reacts = defaultdict(list)
     for r in tbl:
-        msg_id = r['Messages.MessageID']
-        txt = r['Text']
+        print(r)
+        msg_id = r[0]
+        txt = r[1]
         key = (msg_id, txt)
-        react = r['ReactName']
+        react = r[2]
         # { (MessageID, Text) : [Reacts...] }
         reacts[key].append(react)
 
