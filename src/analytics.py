@@ -211,9 +211,7 @@ def get_common_phrases():
     phrases = []
 
     for text in texts:
-        print(text)
         for phrase in ngrams(text.split(' '), 3):
-            print(phrase)
             if phrase in omit_phrases:
                 continue
             if any(word in punc for word in phrase):
@@ -227,7 +225,7 @@ def most_unique_reacts_on_a_post():
     
     reacts = defaultdict(list)
     for r in tbl:
-        msg_id = r['MessageID']
+        msg_id = r['Messages.MessageID']
         txt = r['Text']
         key = (msg_id, txt)
         react = r['ReactName']
