@@ -210,16 +210,13 @@ def get_common_phrases():
     phrases = []
 
     for text in texts:
-        n_grams = ngrams(text, 3)
-        phrases.extend(n_grams)
-        print(n_grams)
+        for phrase in n_grams(text[0], 3):
+            if phrase in omit_phrases:
+                continue
+            if any(word in punc for word in phrase):
+                continue
 
-    for phrase in phrases:
-        if phrase in omit_phrases:
-            continue
-        if any(word in punc for word in phrase):
-            continue
-        phrase_counter[phrase] += 1
+            phrase_counter[phrase] += 1
     return phrase_counter
 
 def most_unique_reacts_on_a_post():
