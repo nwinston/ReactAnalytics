@@ -1,8 +1,9 @@
 import traceback
 import os
-import psycopg2
 import log
 from functools import wraps
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 CREATE_MESSAGES_TABLE = '''CREATE TABLE IF NOT EXISTS Messages (
@@ -40,7 +41,7 @@ def psycopg2_cur(func):
     def wrapper(*args, **kwargs):
         try:
             conn = get_connection()
-            cursor = conn.cursor()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             create_tables(conn)
             ret_val = func(cursor, *args, **kwargs)
         finally:
