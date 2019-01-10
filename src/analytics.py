@@ -223,14 +223,16 @@ def get_common_phrases():
 def most_unique_reacts_on_a_post():
     tbl = db.execute(ALL_REACTS)
     
-    texts = {}
     reacts = defaultdict(list)
     for r in tbl:
         msg_id = r[0]
-        texts[msg_id] = r[1]
-        reacts[msg_id].append(r[2])
+        txt = r[1]
+        react = r[2]
+        # 
+        reacts[(msg_id, txt)].append(react)
 
-    tbl = [(texts[m_id], reacts[m_id]) for m_id in texts if texts[m_id]]
+    # Store in a list of tuple of (MessageText, [Reacts...])
+    tbl = [(msg[1], reacts[msg]) for msg in reacts if msg[1]]
     tbl = sorted(tbl, key=lambda r: len(r[1]))
     tbl.reverse()
 
