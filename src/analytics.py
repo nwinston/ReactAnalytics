@@ -210,8 +210,8 @@ def get_common_phrases():
     phrases = []
 
     for text in texts:
-        for phrase in ngrams(text[0], 3):
-            print(phrase)
+        for phrase in ngrams(text, 3):
+            
             if phrase in omit_phrases:
                 continue
             if any(word in punc for word in phrase):
@@ -227,12 +227,13 @@ def most_unique_reacts_on_a_post():
     for r in tbl:
         msg_id = r[0]
         txt = r[1]
+        key = (msg_id, txt)
         react = r[2]
-        # 
-        reacts[(msg_id, txt)].append(react)
+        # { (MessageID, Text) : [Reacts...] }
+        reacts[key].append(react)
 
     # Store in a list of tuple of (MessageText, [Reacts...])
-    tbl = [(msg[1], reacts[msg]) for msg in reacts if msg[1]]
+    tbl = [(key[1], reacts[msg]) for key in reacts if key[1]]
     tbl = sorted(tbl, key=lambda r: len(r[1]))
     tbl.reverse()
 
