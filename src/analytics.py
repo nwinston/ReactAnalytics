@@ -207,9 +207,9 @@ def most_reacted_to_posts():
 def get_common_phrases():
     phrase_counter = Counter()
     texts = db.execute(ALL_MESSAGE_TEXTS)
-    print(texts)
     # Flatten list
-    texts = [t for sub in list_of_lists for t in sub]
+    texts = [t for sub in texts for t in sub]
+    print(texts)
     words = texts.split()
     for phrase in ngrams(words, 3):
         if phrase in omit_phrases:
