@@ -209,9 +209,9 @@ def get_common_phrases():
     texts = db.execute(ALL_MESSAGE_TEXTS)
     phrases = []
 
-    for text in texts:
+    for _, text in texts.items():
         print(text)
-        for phrase in ngrams(text[0].split(' '), 3):
+        for phrase in ngrams(text.split(' '), 3):
             print(phrase)
             if phrase in omit_phrases:
                 continue
