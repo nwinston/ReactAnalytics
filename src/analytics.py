@@ -49,7 +49,7 @@ MOST_REACTED_TO = '''
     GROUP BY Messages.MessageID
     ORDER BY Count(Reacts.ReactName) DESC
     '''
-    
+
 REACT_TOTALS = '''SELECT UserID, COUNT(UserID) FROM Reacts 
     GROUP BY UserID
     ORDER BY COUNT(UserID)
@@ -240,5 +240,5 @@ def most_active():
 @get_top
 @to_dict
 def users_with_most_reacts():
-    tbl = db.execute(REACTS_TOTALS)
+    tbl = db.execute(REACT_TOTALS)
     return tbl
