@@ -211,6 +211,7 @@ def get_common_phrases():
 
     for text in texts:
         for phrase in ngrams(text[0], 3):
+            print(phrase)
             if phrase in omit_phrases:
                 continue
             if any(word in punc for word in phrase):
