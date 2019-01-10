@@ -207,13 +207,14 @@ def most_reacted_to_posts():
 def get_common_phrases():
     phrase_counter = Counter()
     texts = db.execute(ALL_MESSAGE_TEXTS)
-    n_grams = [ngrams(text[0], 3) for text in texts]
+    n_grams = [str(ngrams(text[0], 3)) for text in texts]
     print(n_grams)
     for phrase in n_grams:
         if phrase in omit_phrases:
             continue
-        if all(word not in punc for word in phrase):
-            phrase_counter[phrase] += 1
+        if any(word in punc for word in phrase):
+            continue
+        phrase_counter[phrase] += 1
     return phrase_counter
 
 def most_unique_reacts_on_a_post():
