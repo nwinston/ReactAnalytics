@@ -207,7 +207,7 @@ def most_reacted_to_posts():
 def get_common_phrases():
     phrase_counter = Counter()
     texts = db.execute(ALL_MESSAGE_TEXTS)
-    texts = [t['text'] for t in texts]
+    texts = [t[0] for t in texts]
     phrases = []
 
     for text in texts:

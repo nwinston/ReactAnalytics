@@ -41,7 +41,7 @@ def psycopg2_cur(func):
     def wrapper(*args, **kwargs):
         try:
             conn = get_connection()
-            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            cursor = conn.cursor()
             create_tables(conn)
             ret_val = func(cursor, *args, **kwargs)
         finally:
