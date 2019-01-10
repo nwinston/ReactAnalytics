@@ -242,10 +242,8 @@ class Bot(object):
 
     def most_active(self):
         most_active = analytics.most_active()
-        print(most_active)
         result_str = ['*Most active users*']
         for user, _ in most_active:
-            print(user)
             if self.user_exists(user):
                 result_str.append('<@' + user + '>')
             else:
@@ -255,12 +253,12 @@ class Bot(object):
     def most_used_reacts(self, text):
         user_id = re.search('(?<=\@)(.*?)(?=\|)', text)
 
-        users = list(user_id) if user_id else self.users
-        result = analytics.favorite_reacts_of_users(users)
+        user = user_id if user_id else None
+        result = analytics.most_used_reacts(user)
 
         return_str = ['*Most used reacts:*']
         for r in result:
-            line = ':' + str(r[0]) + ': : ' + str(r[1])
+            line = ':' + str(r) + ': : ' + str(result(r))
             return_str.append(line)
         return '\n'.join(return_str)
 

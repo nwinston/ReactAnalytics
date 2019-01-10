@@ -40,7 +40,7 @@ REACTS_BY_USER = '''
     SELECT * FROM Reacts WHERE Reacts.UserID = %s
     '''
 ALL_REACTS = '''
-    SELECT DISTINCT Messages.MessageID, Text, ReactName FROM Messages
+    SELECT Messages.MessageID, Text, ReactName FROM Messages
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
     '''
 MOST_REACTED_TO = '''
@@ -51,13 +51,13 @@ MOST_REACTED_TO = '''
     '''
 REACT_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
 
-ACTIVITY_TOTALS = '''Select UserID, Count(UserID) FROM
-(SELECT UserID FROM Messages UNION ALL
-SELECT UserID FROM Reacts) 
-As t
-GROUP BY UserID
-ORDER BY Count(UserID) DESC
-
+ACTIVITY_TOTALS = '''
+    Select UserID, Count(UserID) FROM
+    (SELECT UserID FROM Messages UNION ALL
+    SELECT UserID FROM Reacts) 
+    As t
+    GROUP BY UserID
+    ORDER BY Count(UserID) DESC
 '''
 
 
@@ -93,6 +93,18 @@ def favorite_reacts_of_user(user):
 
 def favorite_reacts_of_users(users):
     return {user: favorite_reacts_of_user(user) for user in users}
+
+@get_top
+def most_used_reacts(user=None):
+    if user:
+        return favorite_reacts_of_user(user)
+
+    tbl = db.execute(ALL_REACTS)
+
+    counter = Counter([r[2] for r in tbl])
+    return counter
+
+
 
 
 def translate(token, users, channels):
