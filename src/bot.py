@@ -286,12 +286,12 @@ class Bot(object):
         for r in reacts:
             try:
                 react_buzzwords = analytics.react_buzzword(r, self.users, self.channels)
-
-                result_str.append(':' + r + ':: ')
+                line = ':' + r + ':: '
                 if react_buzzwords:
-                    result_str.append(', '.join([word for word in react_buzzwords.keys()]))
+                    line += ', '.join([word for word in react_buzzwords.keys()])
                 else:
-                    result_str.append('React not used')
+                    line += 'React not used'
+                result_str.append(line)
 
             except Exception as e:
                 logging.getLogger(__name__).exception(e)

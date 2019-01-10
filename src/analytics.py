@@ -102,7 +102,7 @@ def most_used_reacts(user=None):
     tbl = db.execute(ALL_REACTS)
 
     counter = Counter([r[2] for r in tbl])
-    return counter
+    return dict(counter)
 
 
 
