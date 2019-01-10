@@ -87,7 +87,11 @@ def execute(cursor, query, args=None):
 def add_react(cursor, react):
     if not react:
         return
-    cursor.execute('INSERT INTO Reacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
+    try:
+        cursor.execute('INSERT INTO Reacts VALUES(%s, %s, %s);', (react.msg_id, react.user_id, react.name))
+    except Exception as e:
+        print(e)
+        print(traceback.print_exc())
 
 
 
