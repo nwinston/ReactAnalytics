@@ -234,7 +234,7 @@ def most_unique_reacts_on_a_post():
         reacts[key].append(react)
 
     # Store in a list of tuple of (MessageText, [Reacts...])
-    tbl = [(key[1], reacts[msg]) for key in reacts if key[1]]
+    tbl = [(key[1], reacts[key]) for key in reacts if key[1]]
     tbl = sorted(tbl, key=lambda r: len(r[1]))
     tbl.reverse()
 
