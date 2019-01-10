@@ -207,7 +207,7 @@ def most_reacted_to_posts():
 def get_common_phrases():
     phrase_counter = Counter()
     texts = db.execute(ALL_MESSAGE_TEXTS)
-    n_grams = [str(ngrams(text[0], 3)) for text in texts]
+    n_grams = [' '.join(w for w in [ngrams(text[0], 3)]) for text in texts]
     print(n_grams)
     for phrase in n_grams:
         if phrase in omit_phrases:
