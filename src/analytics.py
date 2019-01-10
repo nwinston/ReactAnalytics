@@ -109,7 +109,7 @@ def most_used_reacts(user=None):
     return dict(counter)
 
 
-def translate(token, users, channels):
+def translate_token(token, users, channels):
     ''' 
     This function converts escaped tokens to their display names. If token is not 
     escaped, the token is returned
@@ -150,16 +150,14 @@ def unique_words(msgs, users, channels):
     unique_words = Counter()
     translator = str.maketrans('', '', punc)
 
+    msgs = [msg for msg in msgs if msg]
     for msg in msgs:
-        if not msg:
-            continue
-
         msg = msg.lower()
 
         tokenized = {w.translate(translator) for w in msg.split(
             ' ') if w.lower() not in stop_words}
         for token in tokenized:
-            key = translate(token, disp_names, channels)
+            key = translate_token(token, disp_names, channels)
             unique_words[key] += 1
 
     return unique_words
@@ -228,14 +226,14 @@ def most_unique_reacts_on_a_post():
         msg_id = r[0]
         txt = r[1]
         key = (msg_id, txt)
+
         react = r[2]
         # { (MessageID, Text) : [Reacts...] }
         reacts[key].add(react)
 
     # Store in a list of tuple of (MessageText, [Reacts...])
     tbl = [(key[1], reacts[key]) for key in reacts if key[1]]
-    tbl = sorted(tbl, key=lambda r: len(r[1]))
-    tbl.reverse()
+    tbl = sorted(tbl, reverse=True, key=lambda r: len(r[1]))
 
     return tbl[:5]
 
