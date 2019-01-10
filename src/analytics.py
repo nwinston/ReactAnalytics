@@ -208,7 +208,7 @@ def get_common_phrases():
     phrase_counter = Counter()
     texts = db.execute(ALL_MESSAGE_TEXTS)
     n_grams = [ngrams(text[0], 3) for text in texts]
-    print(ngrams)
+    print(n_grams)
     for phrase in n_grams:
         if phrase in omit_phrases:
             continue
