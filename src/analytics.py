@@ -30,7 +30,7 @@ USER_EXPR = re.compile('(?<=<@)(.*?)(?=>)')
 
 
 # DB Queries
-ALL_MESSAGE_TEXTS = 'SELECT MessageText FROM Messages'
+ALL_MESSAGE_TEXTS = 'SELECT Text FROM Messages'
 MESSAGES_WITH_REACT = '''
     SELECT Text FROM Messages
     INNER JOIN Reacts ON Messages.MessageID=Reacts.MessageID
@@ -49,7 +49,11 @@ MOST_REACTED_TO = '''
     GROUP BY Messages.MessageID
     ORDER BY Count(Reacts.ReactName) DESC
     '''
-REACT_TOTALS = 'SELECT UserID, sum(Count) FROM Reacts GROUP BY UserID'
+    
+REACT_TOTALS = '''SELECT UserID, COUNT(UserID) FROM Reacts 
+    GROUP BY UserID
+    ORDER BY COUNT(UserID)
+    '''
 
 ACTIVITY_TOTALS = '''
     Select UserID, Count(UserID) FROM
@@ -103,8 +107,6 @@ def most_used_reacts(user=None):
 
     counter = Counter([r[2] for r in tbl])
     return dict(counter)
-
-
 
 
 def translate(token, users, channels):
