@@ -259,7 +259,7 @@ class Bot(object):
         return_str = ['*Most used reacts:*']
         for r in result:
             print(r)
-            line = ':' + str(r) + ': : ' + str(result(r))
+            line = ':' + str(r) + ': : ' + str(result[r])
             return_str.append(line)
         return '\n'.join(return_str)
 
